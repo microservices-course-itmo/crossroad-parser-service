@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  service:
+    image: crossroad-parser-service:latest
+    ports:
+      - 8080:8080
+    environment:
+      - S_POSTGRES_HOST=postgres
+      - S_KAFKA_BOOTSTRAP_HOST=kafka:9092
+    depends_on:
+      - kafka
+      - postgres
