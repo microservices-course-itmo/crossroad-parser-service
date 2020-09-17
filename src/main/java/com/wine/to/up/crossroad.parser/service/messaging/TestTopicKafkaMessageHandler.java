@@ -1,5 +1,5 @@
 package com.wine.to.up.crossroad.parser.service.messaging;
-
+/*
 import com.wine.to.up.commonlib.messaging.KafkaMessageHandler;
 import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageSentEventOuterClass.KafkaMessageSentEvent;
 import com.wine.to.up.crossroad.parser.service.domain.entity.Message;
@@ -29,3 +29,4 @@ public class TestTopicKafkaMessageHandler implements KafkaMessageHandler<KafkaMe
         messageRepository.save(new Message(message.getMessage()));
     }
 }
+*/

@@ -3,12 +3,15 @@ package com.wine.to.up.crossroad.parser.service.configuration;
 import com.wine.to.up.commonlib.messaging.BaseKafkaHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
+/*
 import com.wine.to.up.crossroad.parser.service.api.CrossroadParserServiceApiProperties;
 import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageSentEventOuterClass.KafkaMessageSentEvent;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
+
 import com.wine.to.up.crossroad.parser.service.messaging.TestTopicKafkaMessageHandler;
 import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventDeserializer;
 import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventSerializer;
+*/
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -21,7 +24,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-
 import java.util.Properties;
 
 @Configuration
@@ -82,6 +84,7 @@ public class KafkaConfiguration {
      * @param consumerProperties is the general consumer properties. {@link #consumerProperties()}
      * @param handler            which is responsible for handling messages from this topic
      */
+    /*
     @Bean
     BaseKafkaHandler<KafkaMessageSentEvent> testTopicMessagesHandler(Properties consumerProperties,
                                                                      CrossroadParserApiProperties crossroadParserServiceApiProperties,
@@ -103,6 +106,7 @@ public class KafkaConfiguration {
      * @param crossroadParserServiceApiProperties class containing the values of the given service's API properties (in this particular case topic name)
      * @param metricsCollector         class encapsulating the logic of the metrics collecting and publishing
      */
+    /*
     @Bean
     KafkaMessageSender<KafkaMessageSentEvent> testTopicKafkaMessageSender(Properties producerProperties,
                                                                           CrossroadParserApiProperties crossroadParserServiceApiProperties,
@@ -112,4 +116,5 @@ public class KafkaConfiguration {
 
         return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), crossroadParserServiceApiProperties.getMessageSentEventsTopicName(), metricsCollector);
     }
+    */
 }

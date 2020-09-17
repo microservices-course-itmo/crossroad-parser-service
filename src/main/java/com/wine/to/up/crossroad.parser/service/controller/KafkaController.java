@@ -1,10 +1,12 @@
 package com.wine.to.up.crossroad.parser.service.controller;
 
+/*
 import com.google.protobuf.ByteString;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.api.dto.CrossroadParserMessage;
 import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageHeaderOuterClass;
 import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageSentEventOuterClass.KafkaMessageSentEvent;
+*/
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,16 +28,19 @@ import static java.util.stream.Collectors.toList;
 /**
  * REST controller of the service
  */
+/*
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/kafka")
 @Validated
 @Slf4j
+
 public class KafkaController {
 
     /**
      * Service for sending messages
      */
+    /*
     private KafkaMessageSender<KafkaMessageSentEvent> kafkaSendMessageService;
 
     private final ExecutorService executorService = Executors.newFixedThreadPool(3);
@@ -50,6 +55,7 @@ public class KafkaController {
      * Sends messages into the topic "test".
      * In fact now this service listen to that topic too. That means that it causes sending and reading messages
      */
+    /*
     @PostMapping(value = "/send")
     public void sendMessage(@RequestBody String message) {
         sendMessageWithHeaders(new CrossroadParserMessage(Collections.emptyMap(), message));
@@ -59,6 +65,7 @@ public class KafkaController {
      * See {@link #sendMessage(String)}
      * Sends message with headers
      */
+    /*
     @PostMapping(value = "/send/headers")
     public void sendMessageWithHeaders(@RequestBody CrossroadParserServiceMessage message) {
         AtomicInteger counter = new AtomicInteger(0);
@@ -97,3 +104,4 @@ public class KafkaController {
         log.info("Sent: " + sent);
     }
 }
+*/

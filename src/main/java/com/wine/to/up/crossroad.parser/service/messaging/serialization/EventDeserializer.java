@@ -1,18 +1,21 @@
 package com.wine.to.up.crossroad.parser.service.messaging.serialization;
-
+/*
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageSentEventOuterClass.KafkaMessageSentEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
-
+*/
+/*
 /**
  * Deserializer for {@link KafkaMessageSentEvent}
  */
+/*
 @Slf4j
 public class EventDeserializer implements Deserializer<KafkaMessageSentEvent> {
     /**
      * {@inheritDoc}
      */
+/*
     @Override
     public KafkaMessageSentEvent deserialize(String topic, byte[] bytes) {
         try {
@@ -23,3 +26,4 @@ public class EventDeserializer implements Deserializer<KafkaMessageSentEvent> {
         }
     }
 }
+*/
