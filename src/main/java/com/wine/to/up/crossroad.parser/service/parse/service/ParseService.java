@@ -25,7 +25,7 @@ public class ParseService {
     private ParseClient client;
 
     public ParseService(ParseClient client) {
-        this.client = Objects.requireNonNull(client, "Can't get ParseCLient");
+        this.client = Objects.requireNonNull(client, "Can't get ParseClient");
     }
 
 
@@ -39,11 +39,18 @@ public class ParseService {
     public Optional<List<Product>> parseCurrentPage(int page) {
         try {
             List<Product> productList = new ArrayList<>();
-            String path = "";
+            String path = String.format("?attr[rate][]=0&page=%d&sort=rate_desc", page);
             Document document = client.getDocumentByPath(path);
-            createProduct(document.getElementById(""));
-            //Проверка на Optional!!!!
-            return Optional.empty(); //Временно, чтобы запускалось
+
+            Element productsList = document.getElementById("catalogItems");
+            for (Element el : productsList.children()) {
+                Optional<Product> product = createProduct(el.child(0));
+                if (product.isPresent()) {
+                    productList.add((product.get()));
+                }
+            }
+
+            return Optional.of(productList);
         } catch (Exception ex) {
             log.error("Can't parse page = {}", page, ex);
             return Optional.empty();
