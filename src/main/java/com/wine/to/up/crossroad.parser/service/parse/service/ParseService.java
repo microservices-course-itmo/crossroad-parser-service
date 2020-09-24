@@ -30,32 +30,13 @@ public class ParseService {
 
 
     /**
-     * Парсинг сайта для получения списка предложений о покупке вина
-     *
-     * @return полный список продуктов c сайта
-     */
-    public Optional<List<Product>> parseDocument() {
-        try {
-            int page = 1;
-            Optional<List<Product>> result;
-            do {
-                result = parseCurrentPage(page);
-            } while (result.isPresent());
-            return Optional.empty(); //Временно, чтобы запускалось
-        } catch (Exception ex) {
-            log.error("Can't parse web-page", ex);
-            return Optional.empty();
-        }
-    }
-
-    /**
      * Парсинг текущей страницы. Необходимо сформировать path для добавления в url.
      * Номер страницы передаётся в параметрах запроса. Пока что можно формировать в ручную
-     * Удобно библиотеки/функции для этого пока не нашёл
+     * Удобной библиотеки/функции для этого пока не нашёл
      *
      * @return список продуктов со страницы
      */
-    private Optional<List<Product>> parseCurrentPage(int page) {
+    public Optional<List<Product>> parseCurrentPage(int page) {
         try {
             List<Product> productList = new ArrayList<>();
             String path = "";
