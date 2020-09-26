@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.parse.requests;
 
 import com.wine.to.up.crossroad.parser.service.parse.serialization.ResponsePojo;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -15,7 +16,7 @@ public class RequestsServiceTest {
     @Test
     public void testDeserialization() {
         Optional<ResponsePojo> pojo = RequestsService.getJson("https://www.perekrestok.ru/catalog/alkogol/vino?ajax=true");
-        assert pojo.isPresent();
+        Assert.assertTrue(pojo.isPresent());
         log.info(pojo.get().toString());
     }
 }
