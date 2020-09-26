@@ -6,6 +6,7 @@ import com.wine.to.up.crossroad.parser.service.parse.client.ParseClient;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,24 +45,31 @@ public class ParseService {
 
             Element productsList = document.getElementById("catalogItems");
             for (Element el : productsList.children()) {
-                try {
-                    String itemPath = el.getElementsByClass("xf-product__main-link").get(0).attr("href");
-                    Document itemDocument = client.getDocumentByPath(itemPath);
+                Elements links = el.getElementsByClass("xf-product__main-link");
+                if (links.size() > 0) {
+                    String itemPath = links.get(0).attr("href");
 
-                    Element itemEl = itemDocument.getElementsByClass("js-product _substrate-card").get(0);
-
-                    Optional<Product> product = createProduct(itemEl);
+                    Optional<Product> product = parseProductPage(itemPath);
                     if (product.isPresent()) {
                         productList.add((product.get()));
                     }
-                } catch (Exception ex) {
-                    log.error("Can't find link for item = {}", ex);
                 }
             }
 
             return Optional.of(productList);
         } catch (Exception ex) {
             log.error("Can't parse page = {}", page, ex);
+            return Optional.empty();
+        }
+    }
+
+    private Optional<Product> parseProductPage(String path) {
+        Document document = client.getDocumentByPath(path);
+        Elements elements = document.getElementsByClass("js-product _substrate-card");
+
+        if (elements.size() > 0) {
+            return createProduct(elements.get(0));
+        } else {
             return Optional.empty();
         }
     }
