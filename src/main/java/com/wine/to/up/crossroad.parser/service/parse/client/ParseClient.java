@@ -17,14 +17,20 @@ public class ParseClient {
     private final String userAgent;
     private final int timeout;
     private final String region;
+    private final boolean ajax;
 
     private final static String HEADER_REGION = "region";
 
-    public ParseClient(String baseUrl, String userAgent, int timeout, String region) {
+    public ParseClient(String baseUrl, String userAgent, int timeout, String region, boolean ajax) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
         this.region = region;
+        this.ajax = ajax;
+    }
+
+    public ParseClient(String baseUrl, String userAgent, int timeout, String region) {
+        this(baseUrl, userAgent, timeout, region, true);
     }
 
     public Document getDocumentByPath(String path) {
