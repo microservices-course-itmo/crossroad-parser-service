@@ -6,6 +6,7 @@ import com.wine.to.up.crossroad.parser.service.parse.client.ParseClient;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,14 +40,19 @@ public class ParseService {
     public Optional<List<Product>> parseCurrentPage(int page) {
         try {
             List<Product> productList = new ArrayList<>();
-            String path = String.format("?attr[rate][]=0&page=%d&sort=rate_desc", page);
+            String path = String.format("/catalog/alkogol/vino?attr[rate][]=0&page=%d&sort=rate_desc", page);
             Document document = client.getDocumentByPath(path);
 
             Element productsList = document.getElementById("catalogItems");
             for (Element el : productsList.children()) {
-                Optional<Product> product = createProduct(el.child(0));
-                if (product.isPresent()) {
-                    productList.add((product.get()));
+                Elements links = el.getElementsByClass("xf-product__main-link");
+                if (links.size() > 0) {
+                    String itemPath = links.get(0).attr("href");
+
+                    Optional<Product> product = parseProductPage(itemPath);
+                    if (product.isPresent()) {
+                        productList.add((product.get()));
+                    }
                 }
             }
 
@@ -57,12 +63,25 @@ public class ParseService {
         }
     }
 
+    private Optional<Product> parseProductPage(String path) {
+        Document document = client.getDocumentByPath(path);
+        Elements elements = document.getElementsByClass("js-product _substrate-card");
+
+        if (elements.size() > 0) {
+            return createProduct(elements.get(0));
+        } else {
+            return Optional.empty();
+        }
+    }
+
     /**
      * Преобразуем элемент, который получили со страницы в объект Product
      *
      * @return список продуктов со страницы
      */
     private Optional<Product> createProduct(Element element) {
+        log.debug(element.attr("data-gtm-product-name"));
+
         try {
 //            Product product = Product.builder()
 //                    .name()
