@@ -5,5 +5,16 @@ import java.util.List;
 public class ResponsePojo {
     public int count;
     public String html;
-    public List<String> jsonTags;
+    public String htmlFilters;
+    public String jsonTags;
+
+    @Override
+    public String toString() {
+        return "ResponsePojo{" +
+                "count=" + count +
+                ", html='" + html.substring(0, 20) + "...\n" +
+                ", htmlFilters='" + htmlFilters.substring(0, 10) + "...\n" +
+                ", jsonTags='" + jsonTags + '\'' +
+                '}';
+    }
 }
