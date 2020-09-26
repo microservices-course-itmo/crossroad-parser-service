@@ -39,14 +39,23 @@ public class ParseService {
     public Optional<List<Product>> parseCurrentPage(int page) {
         try {
             List<Product> productList = new ArrayList<>();
-            String path = String.format("?attr[rate][]=0&page=%d&sort=rate_desc", page);
+            String path = String.format("/catalog/alkogol/vino?attr[rate][]=0&page=%d&sort=rate_desc", page);
             Document document = client.getDocumentByPath(path);
 
             Element productsList = document.getElementById("catalogItems");
             for (Element el : productsList.children()) {
-                Optional<Product> product = createProduct(el.child(0));
-                if (product.isPresent()) {
-                    productList.add((product.get()));
+                try {
+                    String itemPath = el.getElementsByClass("xf-product__main-link").get(0).attr("href");
+                    Document itemDocument = client.getDocumentByPath(itemPath);
+
+                    Element itemEl = itemDocument.getElementsByClass("js-product _substrate-card").get(0);
+
+                    Optional<Product> product = createProduct(itemEl);
+                    if (product.isPresent()) {
+                        productList.add((product.get()));
+                    }
+                } catch (Exception ex) {
+                    log.error("Can't find link for item = {}", ex);
                 }
             }
 
@@ -63,6 +72,8 @@ public class ParseService {
      * @return список продуктов со страницы
      */
     private Optional<Product> createProduct(Element element) {
+        log.debug(element.attr("data-gtm-product-name"));
+
         try {
 //            Product product = Product.builder()
 //                    .name()
