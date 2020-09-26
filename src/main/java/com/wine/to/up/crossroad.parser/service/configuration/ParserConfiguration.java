@@ -1,12 +1,10 @@
 package com.wine.to.up.crossroad.parser.service.configuration;
 
-import com.wine.to.up.crossroad.parser.service.parse.client.ParseClient;
-import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * <p>
@@ -28,12 +26,7 @@ public class ParserConfiguration {
     private String userAgent;
 
     @Bean
-    ParseClient parseClient() {
-        return new ParseClient(baseUrl, userAgent, timeout, region);
-    }
-
-    @Bean
-    ParseService parseService(ParseClient parseClient) {
-        return new ParseService(parseClient);
+    RequestsService requestsService() {
+        return new RequestsService(baseUrl, userAgent, timeout, region);
     }
 }

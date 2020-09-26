@@ -4,8 +4,7 @@ import com.wine.to.up.crossroad.parser.service.db.constants.Currency;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.math.BigDecimal;
+import lombok.ToString;
 
 /**
  * <p>
@@ -17,11 +16,12 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @Builder
+@ToString
 public class Product {
     private String name;
     private String info;
-    private BigDecimal previousCost;
-    private BigDecimal currentCost;
+    private float previousCost;
+    private float currentCost;
     private Currency currency;
-    private String typeValue;
+    private float price;
 }
