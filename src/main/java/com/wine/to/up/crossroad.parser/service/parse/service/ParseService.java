@@ -88,11 +88,9 @@ public class ParseService {
      */
     public static List<String> parseUrlsCatalogPage(String html) {
         List<String> productsUrls = new ArrayList<>();
-
         try { //TODO make try/catch more granular
             Document document = Jsoup.parse(html);
-            Element catalogItems = document.getElementById("catalogItems");
-            for (Element item : catalogItems.children()) {
+            for (Element item : document.select(".xf-catalog__item")) {
                 productsUrls.add(
                         parseProductCardAndGetUrl(item.child(0))
                 );
