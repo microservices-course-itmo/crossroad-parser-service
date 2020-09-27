@@ -76,7 +76,7 @@ public class ParseService {
                             .build()
             );
         } catch (Exception e) {
-            log.warn("Can't parse this page");
+            log.warn("Can't parse this page: " + e.getMessage());
         }
         return Optional.empty();
     }

@@ -50,7 +50,7 @@ public class ExportProductListJob {
                     if (optHtml.isPresent()) {
                         List<String> winesFromPage = ParseService.parseUrlsCatalogPage(optHtml.get());
                         if (winesFromPage.size() == 0) {
-                            log.warn("Page parsed, but no urls found");
+                            log.warn(String.format("Page %d parsed, but no urls found", i));
                         }
                         winesUrl.addAll(winesFromPage);
                     }
