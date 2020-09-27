@@ -13,24 +13,18 @@ public class RequestsService {
     private final String userAgent;
     private final int timeout;
     private final String region;
-    private final boolean ajax;
 
     private final static String HEADER_REGION = "region";
 
-    public RequestsService(String baseUrl, String userAgent, int timeout, String region, boolean ajax) {
+    public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
         this.region = region;
-        this.ajax = ajax;
-    }
-
-    public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
-        this(baseUrl, userAgent, timeout, region, true);
     }
 
     //TODO kmosunoff переделать метод так, чтобы принимал
-    // номер нужной страницы
+    // номер нужной страницы и ajax=True/False
     // и использовал данные из конструктора
     public static Optional<ResponsePojo> getJson(String url) {
         try {

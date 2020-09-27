@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -38,18 +40,25 @@ public class ExportProductListJob {
         try {
             int pages = 1; // получить число страниц через RequestService
 
-            List<Product> wines = new ArrayList<>();
+            List<String> winesUrl = new ArrayList<>();
             for (int i = 1; i <= pages; i++) {
                 String html = ""; // получить html нужной страницы через RequestService
-                List<Product> winesFromPage = ParseService.parseCatalogPage(html);
+                List<String> winesFromPage = ParseService.parseUrlsCatalogPage(html);
                 if (winesFromPage.size() == 0) {
-                    log.warn("Page parsed, but no products");
+                    log.warn("Page parsed, but no urls found");
                 }
-                wines.addAll(winesFromPage);
+                winesUrl.addAll(winesFromPage);
             }
 
+            List<Product> wines = winesUrl.stream()
+                    // сделать вызов RequestService и достать html
+                    .map(ParseService::parseProductPage)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .collect(Collectors.toList());
+
             //отдаём все вина в кафку
-            log.info("We've collected {} wines", wines.size());
+            log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
         } catch (Exception ex) {
             log.error("Can't export product list", ex);
         }
