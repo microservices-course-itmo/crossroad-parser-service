@@ -2,12 +2,18 @@ package com.wine.to.up.crossroad.parser.service.parse.requests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.ResponsePojo;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 
-import java.net.URL;
 import java.util.Optional;
 
 @Slf4j
+@Getter
+@Setter
+@ToString
 public class RequestsService {
     private final String baseUrl;
     private final String userAgent;
@@ -26,13 +32,41 @@ public class RequestsService {
     //TODO kmosunoff переделать метод так, чтобы принимал
     // номер нужной страницы и ajax=True/False
     // и использовал данные из конструктора
-    public static Optional<ResponsePojo> getJson(String url) {
+    public Optional<ResponsePojo> getJson(int page, boolean ajax) {
         try {
-            ResponsePojo result = new ObjectMapper().readValue(new URL(url), ResponsePojo.class);
+            String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=%b", page, ajax))
+                    .userAgent(userAgent)
+                    .timeout(timeout)
+                    .data("region", region)
+                    .ignoreContentType(true)
+                    .execute().body();
+            ResponsePojo result = new ObjectMapper().readValue(json, ResponsePojo.class);
+            log.debug(String.valueOf(result.getCount()));
             return Optional.of(result);
         }
         catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Cannot get json response: " + e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    public Optional<String> getHtml(int page, boolean ajax) {
+        Optional<ResponsePojo> result = getJson(page, ajax);
+        return result.map(ResponsePojo::getHtml);
+    }
+
+    public Optional<String> getItemHtml(String url) {
+        try {
+            String result = Jsoup.connect(baseUrl + url)
+                    .userAgent(userAgent)
+                    .timeout(timeout)
+                    .data("region", region)
+                    .ignoreContentType(true)
+                    .execute().body();
+            return Optional.of(result);
+        }
+        catch (Exception e) {
+            log.error("Cannot get json response: " + e.getMessage());
             return Optional.empty();
         }
     }
