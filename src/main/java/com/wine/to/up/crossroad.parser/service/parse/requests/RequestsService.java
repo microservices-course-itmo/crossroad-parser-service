@@ -9,6 +9,23 @@ import java.util.Optional;
 
 @Slf4j
 public class RequestsService {
+    private final String baseUrl;
+    private final String userAgent;
+    private final int timeout;
+    private final String region;
+
+    private final static String HEADER_REGION = "region";
+
+    public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
+        this.baseUrl = baseUrl;
+        this.userAgent = userAgent;
+        this.timeout = timeout;
+        this.region = region;
+    }
+
+    //TODO kmosunoff переделать метод так, чтобы принимал
+    // номер нужной страницы и ajax=True/False
+    // и использовал данные из конструктора
     public static Optional<ResponsePojo> getJson(String url) {
         try {
             ResponsePojo result = new ObjectMapper().readValue(new URL(url), ResponsePojo.class);

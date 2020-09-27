@@ -1,100 +1,119 @@
 package com.wine.to.up.crossroad.parser.service.parse.service;
 
-import com.wine.to.up.crossroad.parser.service.db.constants.Currency;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
-import com.wine.to.up.crossroad.parser.service.parse.client.ParseClient;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 /**
- * <p>
- * </p>
- *
- * @author Maxim Kuznetsov
- * @since 24.09.2020
+ * @author 4ound
  */
 @Slf4j
 public class ParseService {
-
-    private ParseClient client;
-
-    public ParseService(ParseClient client) {
-        this.client = Objects.requireNonNull(client, "Can't get ParseClient");
-    }
-
+    private static final int BRAND = 1;
+    private static final int CAPACITY = 3;
+    private static final int STRENGTH = 4;
+    private static final int COLOR = 5;
+    private static final int SUGAR = 6;
 
     /**
-     * Парсинг текущей страницы. Необходимо сформировать path для добавления в url.
-     * Номер страницы передаётся в параметрах запроса. Пока что можно формировать в ручную
-     * Удобной библиотеки/функции для этого пока не нашёл
+     * Парсинг страницы вина.
      *
-     * @return список продуктов со страницы
+     * @return возвращает dto Product
      */
-    public Optional<List<Product>> parseCurrentPage(int page) {
+    public static Optional<Product> parseProductPage(String html) {
         try {
-            List<Product> productList = new ArrayList<>();
-            String path = String.format("/catalog/alkogol/vino?attr[rate][]=0&page=%d&sort=rate_desc", page);
-            Document document = client.getDocumentByPath(path);
+            Document document = Jsoup.parse(html);
 
-            Element productsList = document.getElementById("catalogItems");
-            for (Element el : productsList.children()) {
-                Elements links = el.getElementsByClass("xf-product__main-link");
-                if (links.size() > 0) {
-                    String itemPath = links.get(0).attr("href");
+            String name = document
+                    .getElementsByClass("xf-product-new__title js-product__title js-product-new-title")
+                    .get(0)
+                    .text();
 
-                    Optional<Product> product = parseProductPage(itemPath);
-                    if (product.isPresent()) {
-                        productList.add((product.get()));
-                    }
-                }
+            float price = Float.parseFloat(
+                    document
+                            .getElementsByClass("js-price-rouble")
+                            .get(0)
+                            .text()
+            );
+
+
+            Elements properties = document
+                    .getElementsByClass("xf-product-new-about-section__property__value");
+
+            String brand = properties.get(BRAND).text();
+
+            // страны нет
+
+            float capacity = Float.parseFloat(
+                    properties.get(CAPACITY).text().replace("л", "")
+            );
+
+            float strength = Float.parseFloat(
+                    properties.get(STRENGTH).text()
+            );
+
+            String color = properties.get(COLOR).text();
+
+            String sugar = properties.get(SUGAR).text();
+
+            return Optional.of(
+                    Product.builder()
+                            .name(name)
+                            .brand(brand)
+                            .capacity(capacity)
+                            .strength(strength)
+                            .color(color)
+                            .sugar(sugar)
+                            .price(price)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.warn("Can't parse this page");
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Парсинг страницы каталога вин.
+     *
+     * @return список ссылок на страницы вин
+     */
+    public static List<String> parseUrlsCatalogPage(String html) {
+        List<String> productsUrls = new ArrayList<>();
+
+        try { //TODO make try/catch more granular
+            Document document = Jsoup.parse(html);
+            Element catalogItems = document.getElementById("catalogItems");
+            for (Element item : catalogItems.children()) {
+                productsUrls.add(
+                        parseProductCardAndGetUrl(item.child(0))
+                );
             }
-
-            return Optional.of(productList);
-        } catch (Exception ex) {
-            log.error("Can't parse page = {}", page, ex);
-            return Optional.empty();
+        } catch (Exception e) {
+            log.warn("Can't parse this page");
         }
+
+        return Collections.unmodifiableList(productsUrls);
     }
 
-    private Optional<Product> parseProductPage(String path) {
-        Document document = client.getDocumentByPath(path);
-        Elements elements = document.getElementsByClass("js-product _substrate-card");
-
-        if (elements.size() > 0) {
-            return createProduct(elements.get(0));
-        } else {
-            return Optional.empty();
-        }
-    }
 
     /**
-     * Преобразуем элемент, который получили со страницы в объект Product
+     * Парсинг карточки вина.
      *
-     * @return список продуктов со страницы
+     * @return ссылку на полную страницу вина
      */
-    private Optional<Product> createProduct(Element element) {
-        log.debug(element.attr("data-gtm-product-name"));
-
-        try {
-//            Product product = Product.builder()
-//                    .name()
-//                    .currentCost()
-//                    .previousCost()
-//                    .typeValue()
-//                    .currency(Currency.RUB)
-//                    .build();
-//            return Optional.of(product);
-            return Optional.empty(); //Временно, чтобы запускалось
-        } catch (Exception ex) {
-            log.error("Can't create product ", ex);
-            return Optional.empty();
-        }
+    private static String parseProductCardAndGetUrl(Element productCard) {
+        return productCard
+                .getElementsByClass("xf-product__title").get(0)
+                .getElementsByTag("a")
+                .attr("href");
     }
 }
