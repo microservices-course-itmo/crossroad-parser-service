@@ -32,6 +32,6 @@ public class RequestsServiceTest {
     public void testDeserialization() {
         Optional<ResponsePojo> pojo = requestsService.getJson(1, true);
         Assert.assertTrue(pojo.isPresent());
-        log.debug(String.valueOf(pojo.get().getCount()));
+        Assert.assertEquals(pojo.get().getCount(), 206);
     }
 }
