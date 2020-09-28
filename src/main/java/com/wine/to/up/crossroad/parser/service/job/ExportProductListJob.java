@@ -2,7 +2,7 @@ package com.wine.to.up.crossroad.parser.service.job;
 
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
-import com.wine.to.up.crossroad.parser.service.parse.serialization.ResponsePojo;
+import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
@@ -41,7 +41,7 @@ public class ExportProductListJob {
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
         try {
-            Optional<ResponsePojo> pojo = requestsService.getJson(1, true);
+            Optional<CatalogResponsePojo> pojo = requestsService.getJson(1, true);
             if (pojo.isPresent()) {
                 int pages = (int) Math.ceil((double) pojo.get().getCount() / 30); // получить число страниц через RequestService
                 List<String> winesUrl = new ArrayList<>();

@@ -7,7 +7,7 @@ import lombok.ToString;
 @Setter
 @Getter
 @ToString
-public class ResponsePojo {
+public class CatalogResponsePojo {
     private int count;
     private String html;
     private String htmlFilters;

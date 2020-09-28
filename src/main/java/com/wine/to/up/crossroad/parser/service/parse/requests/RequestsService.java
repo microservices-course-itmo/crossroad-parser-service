@@ -1,7 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.parse.requests;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wine.to.up.crossroad.parser.service.parse.serialization.ResponsePojo;
+import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -29,7 +29,7 @@ public class RequestsService {
         this.region = region;
     }
 
-    public Optional<ResponsePojo> getJson(int page, boolean ajax) {
+    public Optional<CatalogResponsePojo> getJson(int page, boolean ajax) {
         try {
             String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=%b", page, ajax))
                     .userAgent(userAgent)
@@ -37,7 +37,7 @@ public class RequestsService {
                     .data("region", region)
                     .ignoreContentType(true)
                     .execute().body();
-            ResponsePojo result = new ObjectMapper().readValue(json, ResponsePojo.class);
+            CatalogResponsePojo result = new ObjectMapper().readValue(json, CatalogResponsePojo.class);
             return Optional.of(result);
         }
         catch (Exception e) {
@@ -47,8 +47,8 @@ public class RequestsService {
     }
 
     public Optional<String> getHtml(int page, boolean ajax) {
-        Optional<ResponsePojo> result = getJson(page, ajax);
-        return result.map(ResponsePojo::getHtml);
+        Optional<CatalogResponsePojo> result = getJson(page, ajax);
+        return result.map(CatalogResponsePojo::getHtml);
     }
 
     public Optional<String> getItemHtml(String url) {
