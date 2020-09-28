@@ -13,20 +13,22 @@ import java.util.List;
 import java.util.Optional;
 
 /**
+ * Сервис для парсинга html страниц с каталогом и
+ *
  * @author 4ound
  */
 @Slf4j
 public class ParseService {
-    private static final int BRAND = 1;
-    private static final int CAPACITY = 3;
-    private static final int STRENGTH = 4;
-    private static final int COLOR = 5;
-    private static final int SUGAR = 6;
+    private static final int BRAND_INDEX = 1;
+    private static final int CAPACITY_INDEX = 3;
+    private static final int STRENGTH_INDEX = 4;
+    private static final int COLOR_INDEX = 5;
+    private static final int SUGAR_INDEX = 6;
 
     /**
      * Парсинг страницы вина.
      *
-     * @return возвращает dto Product
+     * @return возвращает dto Optional<Product>
      */
     public static Optional<Product> parseProductPage(String html) {
         try {
@@ -48,21 +50,19 @@ public class ParseService {
             Elements properties = document
                     .getElementsByClass("xf-product-new-about-section__property__value");
 
-            String brand = properties.get(BRAND).text();
-
-            // страны нет
+            String brand = properties.get(BRAND_INDEX).text();
 
             float capacity = Float.parseFloat(
-                    properties.get(CAPACITY).text().replace("л", "")
+                    properties.get(CAPACITY_INDEX).text().replace("л", "")
             );
 
             float strength = Float.parseFloat(
-                    properties.get(STRENGTH).text()
+                    properties.get(STRENGTH_INDEX).text()
             );
 
-            String color = properties.get(COLOR).text();
+            String color = properties.get(COLOR_INDEX).text();
 
-            String sugar = properties.get(SUGAR).text();
+            String sugar = properties.get(SUGAR_INDEX).text();
 
             return Optional.of(
                     Product.builder()
