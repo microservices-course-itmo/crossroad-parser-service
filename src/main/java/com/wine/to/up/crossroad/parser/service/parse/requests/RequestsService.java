@@ -38,7 +38,6 @@ public class RequestsService {
                     .ignoreContentType(true)
                     .execute().body();
             ResponsePojo result = new ObjectMapper().readValue(json, ResponsePojo.class);
-            log.debug(String.valueOf(result.getCount()));
             return Optional.of(result);
         }
         catch (Exception e) {
