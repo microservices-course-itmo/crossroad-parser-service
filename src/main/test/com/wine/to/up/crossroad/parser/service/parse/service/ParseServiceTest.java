@@ -1,4 +1,4 @@
-package com.wine.to.up.parser.service;
+package com.wine.to.up.crossroad.parser.service.parse.service;
 
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
@@ -16,10 +16,10 @@ import java.util.Optional;
  */
 public class ParseServiceTest {
     public static final String CATALOG_FILE_PATH
-            = "src/main/test/java/com/wine/to/up/crossroad/parser/service/parse/service/catalog.html";
+            = "src/main/test/resources/catalog.html";
 
     public static final String WINE_FILE_PATH
-            = "src/main/test/java/com/wine/to/up/crossroad/parser/service/parse/service/wine.html";
+            = "src/main/test/resources/wine.html";
 
     @Test
     public void parseCatalogTest() throws IOException {
