@@ -1,6 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.parse.requests;
 
 import com.wine.to.up.crossroad.parser.service.configuration.ParserConfiguration;
+import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.ResponsePojo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;

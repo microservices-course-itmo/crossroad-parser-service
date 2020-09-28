@@ -1,6 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
 import com.wine.to.up.crossroad.parser.service.configuration.JobConfiguration;
+import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;

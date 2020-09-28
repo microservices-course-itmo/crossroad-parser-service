@@ -29,9 +29,6 @@ public class RequestsService {
         this.region = region;
     }
 
-    //TODO kmosunoff переделать метод так, чтобы принимал
-    // номер нужной страницы и ajax=True/False
-    // и использовал данные из конструктора
     public Optional<ResponsePojo> getJson(int page, boolean ajax) {
         try {
             String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=%b", page, ajax))

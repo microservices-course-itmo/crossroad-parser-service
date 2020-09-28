@@ -1,4 +1,4 @@
-package com.wine.to.up.parser.service;
+package com.wine.to.up.crossroad.parser.service.db.constants;
 
 import com.wine.to.up.crossroad.parser.service.db.constants.Currency;
 import org.junit.Assert;
