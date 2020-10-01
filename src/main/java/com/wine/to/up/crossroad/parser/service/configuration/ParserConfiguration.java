@@ -1,6 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.configuration;
 
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
+import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,5 +29,10 @@ public class ParserConfiguration {
     @Bean
     RequestsService requestsService() {
         return new RequestsService(baseUrl, userAgent, timeout, region);
+    }
+
+    @Bean
+    ParseService parseService() {
+        return new ParseService();
     }
 }
