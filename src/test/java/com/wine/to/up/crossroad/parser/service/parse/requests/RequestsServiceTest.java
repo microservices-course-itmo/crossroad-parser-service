@@ -1,7 +1,6 @@
 package com.wine.to.up.crossroad.parser.service.parse.requests;
 
 import com.wine.to.up.crossroad.parser.service.configuration.ParserConfiguration;
-import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
@@ -30,8 +29,7 @@ public class RequestsServiceTest {
 
     @Test
     public void testDeserialization() {
-        Optional<ResponsePojo> pojo = requestsService.getJson(1, true);
-        Assert.assertTrue(pojo.isPresent());
-        Assert.assertEquals(pojo.get().getCount(), 206);
+        Optional<CatalogResponsePojo> pojo = requestsService.getJson(1, true);
+        Assert.assertTrue(pojo.map(CatalogResponsePojo::getCount).orElse(0) > 0);
     }
 }
