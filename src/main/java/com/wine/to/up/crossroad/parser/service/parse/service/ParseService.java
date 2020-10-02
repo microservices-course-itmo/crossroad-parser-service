@@ -26,7 +26,7 @@ public class ParseService {
     /**
      * Парсинг страницы вина.
      *
-     * @return возвращает dto Product
+     * @return возвращает dto Optional<Product>
      */
     public static Optional<Product> parseProductPage(String html) {
         try {
