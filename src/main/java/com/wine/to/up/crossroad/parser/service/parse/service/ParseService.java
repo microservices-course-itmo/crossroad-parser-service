@@ -30,7 +30,7 @@ public class ParseService {
      *
      * @return возвращает dto Optional<Product>
      */
-    public static Optional<Product> parseProductPage(String html) {
+    public Optional<Product> parseProductPage(String html) {
         try {
             Document document = Jsoup.parse(html);
 
@@ -86,7 +86,7 @@ public class ParseService {
      *
      * @return список ссылок на страницы вин
      */
-    public static List<String> parseUrlsCatalogPage(String html) {
+    public List<String> parseUrlsCatalogPage(String html) {
         List<String> productsUrls = new ArrayList<>();
         try { //TODO make try/catch more granular
             Document document = Jsoup.parse(html);
@@ -108,7 +108,7 @@ public class ParseService {
      *
      * @return ссылку на полную страницу вина
      */
-    private static String parseProductCardAndGetUrl(Element productCard) {
+    private String parseProductCardAndGetUrl(Element productCard) {
         return productCard
                 .getElementsByClass("xf-product__title").get(0)
                 .getElementsByTag("a")

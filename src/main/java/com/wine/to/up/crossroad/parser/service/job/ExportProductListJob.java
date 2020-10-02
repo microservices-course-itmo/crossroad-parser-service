@@ -27,9 +27,11 @@ import java.util.stream.Collectors;
 public class ExportProductListJob {
 
     private final RequestsService requestsService;
+    private final ParseService parseService;
 
-    public ExportProductListJob(RequestsService requestsService) {
+    public ExportProductListJob(RequestsService requestsService, ParseService parseService) {
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
+        this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
     }
 
     /**
@@ -48,7 +50,7 @@ public class ExportProductListJob {
                 for (int i = 1; i <= pages; i++) {
                     Optional<String> optHtml = requestsService.getHtml(i, true);
                     if (optHtml.isPresent()) {
-                        List<String> winesFromPage = ParseService.parseUrlsCatalogPage(optHtml.get());
+                        List<String> winesFromPage = parseService.parseUrlsCatalogPage(optHtml.get());
                         if (winesFromPage.size() == 0) {
                             log.warn(String.format("Page %d parsed, but no urls found", i));
                         }
@@ -57,11 +59,10 @@ public class ExportProductListJob {
                 }
 
                 List<Product> wines = winesUrl.stream()
-                        // сделать вызов RequestService и достать html
                         .map(requestsService::getItemHtml)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
-                        .map(ParseService::parseProductPage)
+                        .map(parseService::parseProductPage)
                         .filter(Optional::isPresent)
                         .map(Optional::get)
                         .collect(Collectors.toList());
