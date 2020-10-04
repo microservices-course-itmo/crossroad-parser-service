@@ -29,7 +29,7 @@ public class RequestsServiceTest {
 
     @Test
     public void testDeserialization() {
-        Optional<CatalogResponsePojo> pojo = requestsService.getJson(1, true);
+        Optional<CatalogResponsePojo> pojo = requestsService.getJson(1);
         Assert.assertTrue(pojo.map(CatalogResponsePojo::getCount).orElse(0) > 0);
     }
 }

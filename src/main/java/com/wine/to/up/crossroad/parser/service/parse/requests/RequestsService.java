@@ -29,9 +29,9 @@ public class RequestsService {
         this.region = region;
     }
 
-    public Optional<CatalogResponsePojo> getJson(int page, boolean ajax) {
+    public Optional<CatalogResponsePojo> getJson(int page) {
         try {
-            String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=%b", page, ajax))
+            String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=true", page))
                     .userAgent(userAgent)
                     .timeout(timeout)
                     .data("region", region)
@@ -46,8 +46,8 @@ public class RequestsService {
         }
     }
 
-    public Optional<String> getHtml(int page, boolean ajax) {
-        Optional<CatalogResponsePojo> result = getJson(page, ajax);
+    public Optional<String> getHtml(int page) {
+        Optional<CatalogResponsePojo> result = getJson(page);
         return result.map(CatalogResponsePojo::getHtml);
     }
 
