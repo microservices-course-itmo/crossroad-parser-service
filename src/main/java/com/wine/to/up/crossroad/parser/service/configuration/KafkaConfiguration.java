@@ -92,7 +92,7 @@ public class KafkaConfiguration {
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, EventDeserializer.class.getName());
 
         // bind consumer with topic name and with appropriate handler
-        return new BaseKafkaHandler<>(apiProperties.getMessageProductTopicName(), new KafkaConsumer<>(consumerProperties), handler);
+        return new BaseKafkaHandler<>(apiProperties.getTopicName(), new KafkaConsumer<>(consumerProperties), handler);
     }
 
     /**
@@ -112,6 +112,6 @@ public class KafkaConfiguration {
         // set appropriate serializer for value
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSerializer.class.getName());
 
-        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), apiProperties.getMessageProductTopicName(), metricsCollector);
+        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), apiProperties.getTopicName(), metricsCollector);
     }
 }
