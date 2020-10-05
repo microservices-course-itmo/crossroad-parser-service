@@ -1,17 +1,17 @@
 package com.wine.to.up.crossroad.parser.service.configuration;
 
+import com.google.protobuf.Extension;
 import com.wine.to.up.commonlib.messaging.BaseKafkaHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
-/*
-import com.wine.to.up.crossroad.parser.service.api.CrossroadParserServiceApiProperties;
-import com.wine.to.up.crossroad.parser.service.api.message.KafkaMessageSentEventOuterClass.KafkaMessageSentEvent;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 
 import com.wine.to.up.crossroad.parser.service.messaging.TestTopicKafkaMessageHandler;
 import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventDeserializer;
 import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventSerializer;
-*/
+
+import com.wine.to.up.parser.common.api.ParserCommonApiProperties;
+import com.wine.to.up.parser.common.api.schema.UpdateProducts;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.consumer.OffsetResetStrategy;
@@ -84,16 +84,15 @@ public class KafkaConfiguration {
      * @param consumerProperties is the general consumer properties. {@link #consumerProperties()}
      * @param handler            which is responsible for handling messages from this topic
      */
-    /*
     @Bean
-    BaseKafkaHandler<KafkaMessageSentEvent> testTopicMessagesHandler(Properties consumerProperties,
-                                                                     CrossroadParserApiProperties crossroadParserServiceApiProperties,
+    BaseKafkaHandler<UpdateProducts.UpdateProductsMessage> testTopicMessagesHandler(Properties consumerProperties,
+                                                                                    ParserCommonApiProperties apiProperties,
                                                                      TestTopicKafkaMessageHandler handler) {
         // set appropriate deserializer for value
         consumerProperties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, EventDeserializer.class.getName());
 
         // bind consumer with topic name and with appropriate handler
-        return new BaseKafkaHandler<>(crossroadParserServiceApiProperties.getMessageSentEventsTopicName(), new KafkaConsumer<>(consumerProperties), handler);
+        return new BaseKafkaHandler<>(apiProperties.getMessageProductTopicName(), new KafkaConsumer<>(consumerProperties), handler);
     }
 
     /**
@@ -103,18 +102,16 @@ public class KafkaConfiguration {
      * the messages in different topics can have different types and require different serializers
      *
      * @param producerProperties       is the general producer properties. {@link #producerProperties()}
-     * @param crossroadParserServiceApiProperties class containing the values of the given service's API properties (in this particular case topic name)
+     * @param apiProperties class containing the values of the given service's API properties (in this particular case topic name)
      * @param metricsCollector         class encapsulating the logic of the metrics collecting and publishing
      */
-    /*
     @Bean
-    KafkaMessageSender<KafkaMessageSentEvent> testTopicKafkaMessageSender(Properties producerProperties,
-                                                                          CrossroadParserApiProperties crossroadParserServiceApiProperties,
-                                                                          CrossroadParserMetricsCollector metricsCollector) {
+    KafkaMessageSender<UpdateProducts.UpdateProductsMessage> testTopicKafkaMessageSender(Properties producerProperties,
+                                                                                         ParserCommonApiProperties apiProperties,
+                                                                                         CrossroadParserServiceMetricsCollector metricsCollector) {
         // set appropriate serializer for value
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSerializer.class.getName());
 
-        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), crossroadParserServiceApiProperties.getMessageSentEventsTopicName(), metricsCollector);
+        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), apiProperties.getMessageProductTopicName(), metricsCollector);
     }
-    */
 }

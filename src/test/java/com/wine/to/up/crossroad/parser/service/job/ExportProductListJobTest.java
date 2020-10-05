@@ -7,6 +7,7 @@ import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
@@ -39,6 +40,7 @@ public class ExportProductListJobTest {
         parseService = (ParseService) context.getBean("parseService");
     }
 
+    @Ignore
     @Test
     public void parseFirstPage() {
         List<String> winesUrlFromPage = requestsService
