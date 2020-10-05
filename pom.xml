@@ -20,6 +20,7 @@
 
         <service.commonlib.version>0.2.1-SNAPSHOT</service.commonlib.version>
         <dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
+        <parser.common.api.version>0.2.0-SNAPSHOT</parser.common.api.version>
     </properties>
 
     <dependencies>
@@ -81,12 +82,12 @@
         </dependency>
 
 
-        <!--Our custom artifacts
+        <!--Our custom artifacts-->
         <dependency>
             <groupId>com.wine.to.up</groupId>
-            <artifactId>crossroad-parser-service-api</artifactId>
-            <version>${crossroad.parser.service.api.version}</version>
-        </dependency>-->
+            <artifactId>parser-common-api</artifactId>
+            <version>${parser.common.api.version}</version>
+        </dependency>
 
     </dependencies>
 

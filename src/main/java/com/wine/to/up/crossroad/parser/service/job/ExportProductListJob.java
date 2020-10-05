@@ -1,8 +1,12 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
+import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
+import com.wine.to.up.crossroad.parser.service.db.constants.Color;
+import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import com.wine.to.up.parser.common.api.schema.UpdateProducts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,10 +32,17 @@ public class ExportProductListJob {
 
     private final RequestsService requestsService;
     private final ParseService parseService;
+    private final KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService;
 
-    public ExportProductListJob(RequestsService requestsService, ParseService parseService) {
+
+    private static final String SHOP_LINK = "perekrestok.ru";
+
+
+    public ExportProductListJob(RequestsService requestsService, ParseService parseService,
+                                KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService) {
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
+        this.kafkaSendMessageService = Objects.requireNonNull(kafkaSendMessageService, "Can't get kafkaSendMessageService");
     }
 
     /**
@@ -68,10 +79,51 @@ public class ExportProductListJob {
                     .map(Optional::get)
                     .collect(Collectors.toList());
 
-            //отдаём все вина в кафку
+            UpdateProducts.UpdateProductsMessage.Builder messageBuilder = UpdateProducts.UpdateProductsMessage.newBuilder()
+                    .setShopLink(SHOP_LINK);
+            for (int i = 0; i < wines.size(); i++) {
+                messageBuilder.setProducts(i, getProtobufProduct(wines.get(i)));
+            }
+            kafkaSendMessageService.sendMessage(messageBuilder.build());
             log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
         } catch (Exception exception) {
             log.error("Can't export product list", exception);
         }
     }
+
+    private UpdateProducts.Product getProtobufProduct(Product wine) {
+        UpdateProducts.Product.Sugar sugar = convertSugar(wine.getSugar());
+        UpdateProducts.Product.Color color = convertColor(wine.getColor());
+        return UpdateProducts.Product.newBuilder()
+                .setName(wine.getName())
+                .setBrand(wine.getBrand())
+                .setCountry(wine.getCountry())
+                .setCapacity(wine.getCapacity())
+                .setStrength(wine.getStrength())
+                .setColor(color)
+                .setSugar(sugar)
+                .setOldPrice(wine.getOldPrice())
+                .setImage(wine.getImage())
+                .setDiscount(wine.getDiscount())
+                .setManufacturer(wine.getManufacturer())
+                .setRegion(wine.getRegion())
+                .setLink(wine.getLink())
+                .setGrapeSort(wine.getGrapeSort())
+                .setYear(wine.getYear())
+                .setDescription(wine.getDescription())
+                .setGastronomy(wine.getGastronomy())
+                .setTaste(wine.getTaste())
+                .setFlavor(wine.getFlavor())
+                .setRating(wine.getRating())
+                .build();
+    }
+
+    private UpdateProducts.Product.Sugar convertSugar(String value) {
+        return Sugar.resolve(value);
+    }
+
+    private UpdateProducts.Product.Color convertColor(String value) {
+        return Color.resolve(value);
+    }
+
 }
