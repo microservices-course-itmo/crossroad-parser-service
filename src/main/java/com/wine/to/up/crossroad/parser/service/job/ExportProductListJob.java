@@ -1,6 +1,8 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
+import com.wine.to.up.crossroad.parser.service.db.constants.Color;
+import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
@@ -117,11 +119,11 @@ public class ExportProductListJob {
     }
 
     private UpdateProducts.Product.Sugar convertSugar(String value) {
-        return UpdateProducts.Product.Sugar.MEDIUM; //TODO Сделать конвертацию согласно предложенной схеме
+        return Sugar.resolve(value);
     }
 
     private UpdateProducts.Product.Color convertColor(String value) {
-        return UpdateProducts.Product.Color.RED; //TODO Сделать конвертацию согласно предложенной схеме
+        return Color.resolve(value);
     }
 
 }
