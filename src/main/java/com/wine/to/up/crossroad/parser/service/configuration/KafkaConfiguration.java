@@ -4,6 +4,7 @@ import com.google.protobuf.Extension;
 import com.wine.to.up.commonlib.messaging.BaseKafkaHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
+import com.wine.to.up.commonlib.metrics.CommonMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 
 import com.wine.to.up.crossroad.parser.service.messaging.TestTopicKafkaMessageHandler;
@@ -23,10 +24,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Scope;
+
 import java.util.Properties;
 
 @Configuration
+@Import(ParserCommonApiProperties.class)
 public class KafkaConfiguration {
     /**
      * List of kafka servers
@@ -84,7 +88,7 @@ public class KafkaConfiguration {
      * @param consumerProperties is the general consumer properties. {@link #consumerProperties()}
      * @param handler            which is responsible for handling messages from this topic
      */
-    @Bean
+    /*@Bean
     BaseKafkaHandler<UpdateProducts.UpdateProductsMessage> testTopicMessagesHandler(Properties consumerProperties,
                                                                                     ParserCommonApiProperties apiProperties,
                                                                      TestTopicKafkaMessageHandler handler) {
@@ -93,7 +97,7 @@ public class KafkaConfiguration {
 
         // bind consumer with topic name and with appropriate handler
         return new BaseKafkaHandler<>(apiProperties.getTopicName(), new KafkaConsumer<>(consumerProperties), handler);
-    }
+    }*/
 
     /**
      * Creates sender based on general properties. It helps to send single message to designated topic.
@@ -106,12 +110,12 @@ public class KafkaConfiguration {
      * @param metricsCollector         class encapsulating the logic of the metrics collecting and publishing
      */
     @Bean
-    KafkaMessageSender<UpdateProducts.UpdateProductsMessage> testTopicKafkaMessageSender(Properties producerProperties,
-                                                                                         ParserCommonApiProperties apiProperties,
-                                                                                         CrossroadParserServiceMetricsCollector metricsCollector) {
+    KafkaMessageSender<UpdateProducts.UpdateProductsMessage> testTopicKafkaMessageSender(Properties producerProperties
+                                                                                         /*ParserCommonApiProperties apiProperties*/
+                                                                                         /*CrossroadParserServiceMetricsCollector metricsCollector*/) {
         // set appropriate serializer for value
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSerializer.class.getName());
 
-        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), apiProperties.getTopicName(), metricsCollector);
+        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), "update-products" /*apiProperties.getTopicName()*/, new CommonMetricsCollector());
     }
 }

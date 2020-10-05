@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +54,7 @@ public class ExportProductListJob {
      */
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
+        log.info("Job started");
         List<String> winesUrl = new ArrayList<>();
 
         requestsService.getJson(1).ifPresent(pojo -> {
@@ -69,22 +71,25 @@ public class ExportProductListJob {
             }
         });
 
+        log.info("Found {} urls", winesUrl.size());
+
         try {
-            List<Product> wines = winesUrl.stream()
+            List<UpdateProducts.Product> wines = winesUrl.stream()
                     .map(requestsService::getItemHtml)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
                     .map(parseService::parseProductPage)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
+                    .map(this::getProtobufProduct)
                     .collect(Collectors.toList());
 
-            UpdateProducts.UpdateProductsMessage.Builder messageBuilder = UpdateProducts.UpdateProductsMessage.newBuilder()
-                    .setShopLink(SHOP_LINK);
-            for (int i = 0; i < wines.size(); i++) {
-                messageBuilder.setProducts(i, getProtobufProduct(wines.get(i)));
-            }
-            kafkaSendMessageService.sendMessage(messageBuilder.build());
+            UpdateProducts.UpdateProductsMessage message = UpdateProducts.UpdateProductsMessage.newBuilder()
+                    .setShopLink(SHOP_LINK)
+                    .addAllProducts(wines)
+                    .build();
+
+            kafkaSendMessageService.sendMessage(message);
             log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
         } catch (Exception exception) {
             log.error("Can't export product list", exception);
@@ -94,28 +99,33 @@ public class ExportProductListJob {
     private UpdateProducts.Product getProtobufProduct(Product wine) {
         UpdateProducts.Product.Sugar sugar = convertSugar(wine.getSugar());
         UpdateProducts.Product.Color color = convertColor(wine.getColor());
-        return UpdateProducts.Product.newBuilder()
-                .setName(wine.getName())
-                .setBrand(wine.getBrand())
-                .setCountry(wine.getCountry())
-                .setCapacity(wine.getCapacity())
-                .setStrength(wine.getStrength())
-                .setColor(color)
-                .setSugar(sugar)
-                .setOldPrice(wine.getOldPrice())
-                .setImage(wine.getImage())
-                .setDiscount(wine.getDiscount())
-                .setManufacturer(wine.getManufacturer())
-                .setRegion(wine.getRegion())
-                .setLink(wine.getLink())
-                .setGrapeSort(wine.getGrapeSort())
-                .setYear(wine.getYear())
-                .setDescription(wine.getDescription())
-                .setGastronomy(wine.getGastronomy())
-                .setTaste(wine.getTaste())
-                .setFlavor(wine.getFlavor())
-                .setRating(wine.getRating())
-                .build();
+        var builder = UpdateProducts.Product.newBuilder();
+
+        builder.setName(wine.getName());
+        // builder.setBrand(wine.getBrand());
+
+        if (wine.getCountry() != null) {
+            builder.setCountry(wine.getCountry());
+        }
+
+//        builder.setCapacity(wine.getCapacity());
+//        builder.setStrength(wine.getStrength());
+//        builder.setColor(color);
+//        builder.setSugar(sugar);
+//        builder.setOldPrice(wine.getOldPrice());
+//        builder.setImage(wine.getImage());
+//        builder.setDiscount(wine.getDiscount());
+//        builder.setManufacturer(wine.getManufacturer());
+//        builder.setRegion(wine.getRegion());
+//        builder.setLink(wine.getLink());
+//        builder.setGrapeSort(wine.getGrapeSort());
+//        builder.setYear(wine.getYear());
+//        builder.setDescription(wine.getDescription());
+//        builder.setGastronomy(wine.getGastronomy());
+//        builder.setTaste(wine.getTaste());
+//        builder.setFlavor(wine.getFlavor());
+//        builder.setRating(wine.getRating());
+        return builder.build();
     }
 
     private UpdateProducts.Product.Sugar convertSugar(String value) {
