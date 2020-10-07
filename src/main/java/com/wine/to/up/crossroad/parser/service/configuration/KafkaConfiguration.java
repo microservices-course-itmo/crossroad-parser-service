@@ -30,7 +30,6 @@ import org.springframework.context.annotation.Scope;
 import java.util.Properties;
 
 @Configuration
-@Import(ParserCommonApiProperties.class)
 public class KafkaConfiguration {
     /**
      * List of kafka servers
