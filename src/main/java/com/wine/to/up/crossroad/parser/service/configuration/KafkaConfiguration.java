@@ -5,10 +5,8 @@ import com.wine.to.up.commonlib.messaging.BaseKafkaHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageHandler;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.commonlib.metrics.CommonMetricsCollector;
-import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 
-import com.wine.to.up.crossroad.parser.service.messaging.TestTopicKafkaMessageHandler;
-import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventDeserializer;
+import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.messaging.serialization.EventSerializer;
 
 import com.wine.to.up.parser.common.api.ParserCommonApiProperties;
@@ -30,7 +28,7 @@ import org.springframework.context.annotation.Scope;
 import java.util.Properties;
 
 @Configuration
-@Import(ParserCommonApiProperties.class)
+@Import({ParserCommonApiProperties.class, CrossroadParserServiceMetricsCollector.class})
 public class KafkaConfiguration {
     /**
      * List of kafka servers
@@ -110,12 +108,12 @@ public class KafkaConfiguration {
      * @param metricsCollector         class encapsulating the logic of the metrics collecting and publishing
      */
     @Bean
-    KafkaMessageSender<UpdateProducts.UpdateProductsMessage> testTopicKafkaMessageSender(Properties producerProperties
-                                                                                         /*ParserCommonApiProperties apiProperties*/
-                                                                                         /*CrossroadParserServiceMetricsCollector metricsCollector*/) {
+    KafkaMessageSender<UpdateProducts.UpdateProductsMessage> testTopicKafkaMessageSender(Properties producerProperties,
+                                                                                         ParserCommonApiProperties apiProperties,
+                                                                                         CrossroadParserServiceMetricsCollector metricsCollector) {
         // set appropriate serializer for value
         producerProperties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EventSerializer.class.getName());
 
-        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties), "update-products" /*apiProperties.getTopicName()*/, new CommonMetricsCollector());
+        return new KafkaMessageSender<>(new KafkaProducer<>(producerProperties),  apiProperties.getParserWinePositionParsedEvents(), metricsCollector);
     }
 }
