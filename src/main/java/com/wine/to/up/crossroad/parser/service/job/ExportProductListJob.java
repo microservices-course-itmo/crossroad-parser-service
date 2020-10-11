@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -74,7 +73,7 @@ public class ExportProductListJob {
         log.info("Found {} urls", winesUrl.size());
 
         try {
-            List<UpdateProducts.Product> wines = winesUrl.stream()
+            List<UpdateProducts.Product> wines = winesUrl.parallelStream()
                     .map(requestsService::getItemHtml)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
