@@ -81,6 +81,7 @@ public class ExportProductListJob {
                     .map(parseService::parseProductPage)
                     .filter(Optional::isPresent)
                     .map(Optional::get)
+                    .peek(product -> product.setShopLink(SHOP_LINK))
                     .map(this::getProtobufProduct)
                     .collect(Collectors.toList());
 
@@ -122,18 +123,17 @@ public class ExportProductListJob {
         if (wine.getImage() != null) {
             builder.setImage(wine.getImage());
         }
-        builder.setDiscount(wine.getDiscount());
         if (wine.getManufacturer() != null) {
             builder.setManufacturer(wine.getManufacturer());
         }
         if (wine.getRegion() != null) {
-            builder.setRegion(wine.getRegion());
+            builder.addAllRegion(wine.getRegion());
         }
         if (wine.getLink() != null) {
             builder.setLink(wine.getLink());
         }
         if (wine.getGrapeSort() != null) {
-            builder.setGrapeSort(wine.getGrapeSort());
+            builder.addAllGrapeSort(wine.getGrapeSort());
         }
         builder.setYear(wine.getYear());
         if (wine.getDescription() != null) {

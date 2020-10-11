@@ -7,7 +7,6 @@ import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
@@ -40,7 +39,6 @@ public class ExportProductListJobTest {
         parseService = (ParseService) context.getBean("parseService");
     }
 
-    @Ignore
     @Test
     public void parseFirstPage() {
         List<String> winesUrlFromPage = requestsService
@@ -49,7 +47,7 @@ public class ExportProductListJobTest {
                 .orElse(Collections.emptyList());
         Assert.assertTrue(winesUrlFromPage.size() > 0);
 
-        List<Product> wines = winesUrlFromPage.stream()
+        List<Product> wines = winesUrlFromPage.parallelStream()
                 .map(requestsService::getItemHtml)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -65,7 +63,9 @@ public class ExportProductListJobTest {
             strength = 0,
             color = 0,
             sugar = 0,
-            price = 0;
+            price = 0,
+            oldPrice = 0,
+            rating = 0;
 
         for (Product product : wines) {
             name += isNotNullable(product.getName());
@@ -75,7 +75,9 @@ public class ExportProductListJobTest {
             strength += isNotZero(product.getStrength());
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
-            price += isNotZero(product.getPrice());
+            price += isNotZero(product.getNewPrice());
+            oldPrice += isNotZero(product.getOldPrice());
+            rating += isNotZero(product.getRating());
         }
 
         Validate.isTrue(name > 0);
@@ -86,6 +88,8 @@ public class ExportProductListJobTest {
         Validate.isTrue(color > 0);
         Validate.isTrue(sugar > 0);
         Validate.isTrue(price > 0);
+        Validate.isTrue(oldPrice == 0);
+        Validate.isTrue(rating > 0);
     }
 
     @Test
