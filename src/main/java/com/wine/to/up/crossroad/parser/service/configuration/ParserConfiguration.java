@@ -33,6 +33,6 @@ public class ParserConfiguration {
 
     @Bean
     ParseService parseService() {
-        return new ParseService();
+        return new ParseService(baseUrl);
     }
 }
