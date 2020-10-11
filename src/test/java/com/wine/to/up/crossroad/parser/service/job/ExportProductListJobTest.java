@@ -9,9 +9,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,22 +28,17 @@ import java.util.stream.Collectors;
  * @author Maxim Kuznetsov
  * @since 24.09.2020
  */
-@SpringBootTest(classes = ExportProductListJob.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class ExportProductListJobTest {
 
-    private ExportProductListJob export;
+    @Autowired
+    private ExportProductListJob exportProductListJob;
+    @Autowired
     private RequestsService requestsService;
+    @Autowired
     private ParseService parseService;
 
-    @Before
-    public void init() {
-        ApplicationContext context = new AnnotationConfigApplicationContext(JobConfiguration.class);
-        export = (ExportProductListJob) context.getBean("exportProductListJob");
-        requestsService = (RequestsService) context.getBean("requestsService");
-        parseService = (ParseService) context.getBean("parseService");
-    }
-
-    @Ignore
     @Test
     public void parseFirstPage() {
         List<String> winesUrlFromPage = requestsService
@@ -59,13 +57,13 @@ public class ExportProductListJobTest {
                 .collect(Collectors.toList());
 
         int name = 0,
-            brand = 0,
-            country = 0,
-            capacity = 0,
-            strength = 0,
-            color = 0,
-            sugar = 0,
-            price = 0;
+                brand = 0,
+                country = 0,
+                capacity = 0,
+                strength = 0,
+                color = 0,
+                sugar = 0,
+                price = 0;
 
         for (Product product : wines) {
             name += isNotNullable(product.getName());
@@ -89,8 +87,9 @@ public class ExportProductListJobTest {
     }
 
     @Test
+    @Ignore
     public void should_true_becauseTestRun() {
-        export.runJob();
+        exportProductListJob.runJob();
     }
 
     private <T> int isNotNullable(T t) {

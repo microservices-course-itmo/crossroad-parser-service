@@ -21,8 +21,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
 @EnableScheduling
-@PropertySource("classpath:application.properties")
-@Import({ParserConfiguration.class, KafkaConfiguration.class})
 public class JobConfiguration {
 
     @Bean
