@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.util.List;
+
 /**
  * <p>
  * </p>
@@ -18,24 +20,25 @@ import lombok.ToString;
 @ToString
 public class Product {
     private String name;
+    private String shopLink;
+    private float oldPrice;
+    private float newPrice;
+    private String link;
+    private String image;
+    private String manufacturer;
     private String brand;
     private String country;
+    private List<String> region;
     private float capacity;
     private float strength;
     private String color;
     private String sugar;
-    private float price;
-    private float oldPrice;
-    private String image;
-    private int discount;
-    private String manufacturer;
-    private String region;
-    private String link;
-    private String grapeSort;
+    private List<String> grapeSort;
     private int year;
     private String description;
     private String gastronomy;
     private String taste;
     private String flavor;
     private float rating;
+    private boolean sparkling;
 }
