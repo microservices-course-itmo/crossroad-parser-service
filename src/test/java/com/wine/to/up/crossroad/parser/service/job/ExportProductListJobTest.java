@@ -69,7 +69,7 @@ public class ExportProductListJobTest {
             price = 0,
             image = 0,
             grape_sort = 0,
-            description = 0;
+            description = 0,
             oldPrice = 0,
             rating = 0;
 
@@ -82,7 +82,7 @@ public class ExportProductListJobTest {
             strength += isNotZero(product.getStrength());
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
-            price += isNotZero(product.getPrice());
+            price += isNotZero(product.getNewPrice());
             image += isNotNullable(product.getImage());
             grape_sort += isNotNullable(product.getGrapeSort());
             description += isNotNullable(product.getDescription());

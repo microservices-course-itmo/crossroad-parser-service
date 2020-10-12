@@ -65,7 +65,7 @@ public class ParseService {
 
         float price;
         try {
-            productBuilder.price(
+            productBuilder.newPrice(
                     Float.parseFloat(
                             document
                                     .getElementsByClass("js-product__cost")
@@ -77,7 +77,6 @@ public class ParseService {
             log.error("Can't parse price of wine {}\n{}", wineName, exception.getMessage());
             return Optional.empty();
         }
-        productBuilder.newPrice(price);
 
         try {
             float oldPrice = Float.parseFloat(
