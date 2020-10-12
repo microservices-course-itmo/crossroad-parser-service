@@ -25,4 +25,17 @@ public class Product {
     private String color;
     private String sugar;
     private float price;
+    private float oldPrice;
+    private String image;
+    private int discount;
+    private String manufacturer;
+    private String region;
+    private String link;
+    private String grapeSort;
+    private int year;
+    private String description;
+    private String gastronomy;
+    private String taste;
+    private String flavor;
+    private float rating;
 }
