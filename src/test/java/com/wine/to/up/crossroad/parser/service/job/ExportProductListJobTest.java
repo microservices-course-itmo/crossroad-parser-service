@@ -8,10 +8,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
 import java.util.List;
@@ -26,20 +30,16 @@ import java.util.stream.Collectors;
  * @since 24.09.2020
  */
 @Slf4j
-@SpringBootTest(classes = ExportProductListJob.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class ExportProductListJobTest {
 
-    private ExportProductListJob export;
+    @Autowired
+    private ExportProductListJob exportProductListJob;
+    @Autowired
     private RequestsService requestsService;
+    @Autowired
     private ParseService parseService;
-
-    @Before
-    public void init() {
-        ApplicationContext context = new AnnotationConfigApplicationContext(JobConfiguration.class);
-        export = (ExportProductListJob) context.getBean("exportProductListJob");
-        requestsService = (RequestsService) context.getBean("requestsService");
-        parseService = (ParseService) context.getBean("parseService");
-    }
 
     @Test
     public void parseFirstPage() {
@@ -118,8 +118,9 @@ public class ExportProductListJobTest {
     }
 
     @Test
+    @Ignore
     public void should_true_becauseTestRun() {
-        export.runJob();
+        exportProductListJob.runJob();
     }
 
     private <T> int isNotNullable(T t) {
