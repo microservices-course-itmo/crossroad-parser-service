@@ -26,6 +26,7 @@ public class ParseService {
     private static final String STRENGTH_NAME = "Крепость, %";
     private static final String COLOR_NAME = "Цвет";
     private static final String SUGAR_NAME = "Сахaр";
+    private static final String YEAR = "Урожай";
     private static final String GRAPE_SORT_NAME = "Сорт винограда";
 
     private final String baseUrl;
@@ -62,19 +63,32 @@ public class ParseService {
         }
         productBuilder.name(wineName);
 
+        float price;
         try {
-            productBuilder.price(
+            productBuilder.newPrice(
                     Float.parseFloat(
                             document
-                                    .getElementsByClass("js-price-rouble")
+                                    .getElementsByClass("js-product__cost")
                                     .get(0)
-                                    .text()
-                                    .replace(" ", "")
+                                    .attr("data-cost")
                     )
             );
         } catch (Exception exception) {
             log.error("Can't parse price of wine {}\n{}", wineName, exception.getMessage());
             return Optional.empty();
+        }
+
+        try {
+            float oldPrice = Float.parseFloat(
+                    document
+                            .getElementsByClass("js-product__old-cost")
+                            .get(0)
+                            .attr("data-cost")
+            );
+            productBuilder.oldPrice(oldPrice);
+        }
+        catch (Exception exception) {
+            log.error("Can't parse an old price {}", exception.getMessage());
         }
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
@@ -101,7 +115,7 @@ public class ParseService {
                     productBuilder.country(value);
                     break;
                 case REGION_NAME:
-                    productBuilder.region(value);
+                    productBuilder.region(Collections.singletonList(value));
                     break;
                 case CAPACITY_NAME:
                     try {
@@ -128,8 +142,40 @@ public class ParseService {
                     productBuilder.sugar(value);
                     break;
                 case GRAPE_SORT_NAME:
-                    productBuilder.grapeSort(value);
+                    productBuilder.grapeSort(Collections.singletonList(value));
                     break;
+                case YEAR:
+                    try {
+                        int year = Integer.parseInt(value.split(" ")[0]);
+                        productBuilder.year(year);
+                    }
+                    catch (Exception exception) {
+                        log.error("Can't parse a year {}", exception.getMessage());
+                    }
+                    break;
+            }
+
+            try {
+                float rating = document
+                        .getElementsByClass("xf-product-new__rating  js-link-scroll ")
+                        .get(0)
+                        .getElementsByClass("xf-product-new__rating__star  _active ")
+                        .size();
+                productBuilder.rating(rating);
+            }
+            catch (Exception exception) {
+                log.error("Can't get a rating {}", exception.getMessage());
+            }
+
+            try {
+                String link = document
+                        .getElementsByAttributeValue("rel", "canonical")
+                        .get(0)
+                        .attr("href");
+                productBuilder.link(link);
+            }
+            catch (Exception exception) {
+                log.error("Can't get a link {}", exception.getMessage());
             }
         });
 
