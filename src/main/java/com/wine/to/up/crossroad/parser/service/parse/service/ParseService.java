@@ -177,8 +177,6 @@ public class ParseService {
             catch (Exception exception) {
                 log.error("Can't get a link {}", exception.getMessage());
             }
-
-
         });
 
         try {

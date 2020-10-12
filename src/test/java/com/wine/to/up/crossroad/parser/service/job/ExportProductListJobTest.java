@@ -83,12 +83,11 @@ public class ExportProductListJobTest {
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
             price += isNotZero(product.getNewPrice());
+            oldPrice += isNotZero(product.getOldPrice());
+            rating += isNotZero(product.getRating());
             image += isNotNullable(product.getImage());
             grape_sort += isNotNullable(product.getGrapeSort());
             description += isNotNullable(product.getDescription());
-            price += isNotZero(product.getNewPrice());
-            oldPrice += isNotZero(product.getOldPrice());
-            rating += isNotZero(product.getRating());
         }
 
         log.info(
