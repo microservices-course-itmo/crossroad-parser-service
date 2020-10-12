@@ -115,7 +115,7 @@ public class ParseService {
                     productBuilder.country(value);
                     break;
                 case REGION_NAME:
-                    productBuilder.region(value);
+                    productBuilder.region(Collections.singletonList(value));
                     break;
                 case CAPACITY_NAME:
                     try {
@@ -142,7 +142,7 @@ public class ParseService {
                     productBuilder.sugar(value);
                     break;
                 case GRAPE_SORT_NAME:
-                    productBuilder.grapeSort(value);
+                    productBuilder.grapeSort(Collections.singletonList(value));
                     break;
                 case YEAR:
                     try {
