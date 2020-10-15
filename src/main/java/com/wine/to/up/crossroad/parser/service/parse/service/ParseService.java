@@ -45,7 +45,7 @@ public class ParseService {
         try {
             document = Jsoup.parse(html);
         } catch (Exception exception) {
-            log.warn("Can't parse html of whole product page {}", exception.getMessage());
+            log.warn("Can't parse html of whole product page {}", exception);
             return Optional.empty();
         }
 
@@ -58,7 +58,7 @@ public class ParseService {
                     .get(0)
                     .text();
         } catch (Exception exception) {
-            log.error("Can't parse name of wine {}", exception.getMessage());
+            log.error("Can't parse name of wine {}", exception);
             return Optional.empty();
         }
         productBuilder.name(wineName);
@@ -103,7 +103,7 @@ public class ParseService {
                         .getElementsByClass("xf-product-new-about-section__property__value").get(0)
                         .text();
             } catch (Exception exception) {
-                log.warn("Can't get name and value of one of properties {}\n{}", wineName, exception.getMessage());
+                log.warn("Can't get name and value of one of properties {}\n{}", wineName, exception);
                 return;
             }
 
@@ -123,7 +123,7 @@ public class ParseService {
                                 Float.parseFloat(value.replace("л", ""))
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.warn("Can't parse capacity of wine {}\n{}", wineName, numberFormatException.getMessage());
+                        log.warn("Can't parse capacity of wine {}\n{}", wineName, numberFormatException);
                     }
                     break;
                 case STRENGTH_NAME:
@@ -132,7 +132,7 @@ public class ParseService {
                                 Float.parseFloat(value)
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.warn("Can't parse strength of wine {}\n{}", wineName, numberFormatException.getMessage());
+                        log.warn("Can't parse strength of wine {}\n{}", wineName, numberFormatException);
                     }
                     break;
                 case COLOR_NAME:
@@ -150,7 +150,7 @@ public class ParseService {
                         productBuilder.year(year);
                     }
                     catch (Exception exception) {
-                        log.warn("Can't parse a year {}", exception.getMessage());
+                        log.warn("Can't parse a year {}", exception);
                     }
                     break;
             }
@@ -164,7 +164,7 @@ public class ParseService {
                 productBuilder.rating(rating);
             }
             catch (Exception exception) {
-                log.error("Can't get a rating {}", exception.getMessage());
+                log.error("Can't get a rating {}", exception);
             }
 
             try {
@@ -175,7 +175,7 @@ public class ParseService {
                 productBuilder.link(link);
             }
             catch (Exception exception) {
-                log.error("Can't get a link {}", exception.getMessage());
+                log.error("Can't get a link {}", exception);
             }
         });
 
@@ -187,7 +187,7 @@ public class ParseService {
                             .attr("src")
             );
         } catch (Exception exception) {
-            log.warn("Can't parse image url {}\n{}", wineName, exception.getMessage());
+            log.warn("Can't parse image url {}\n{}", wineName, exception);
         }
 
         try {
@@ -196,7 +196,7 @@ public class ParseService {
                             .text()
             );
         } catch (Exception exception) {
-            log.warn("Can't get description {}\n{}", wineName, exception.getMessage());
+            log.warn("Can't get description {}\n{}", wineName, exception);
         }
 
         return Optional.of(productBuilder.build());
