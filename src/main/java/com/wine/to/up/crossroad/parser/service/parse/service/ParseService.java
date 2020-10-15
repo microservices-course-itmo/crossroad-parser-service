@@ -74,7 +74,7 @@ public class ParseService {
                     )
             );
         } catch (Exception exception) {
-            log.error("Can't parse price of wine {}\n{}", wineName, exception.getMessage());
+            log.warn("Can't parse a new price of wine {}\n{}", wineName, exception);
             return Optional.empty();
         }
 
@@ -88,7 +88,7 @@ public class ParseService {
             productBuilder.oldPrice(oldPrice);
         }
         catch (Exception exception) {
-            log.error("Can't parse an old price {}", exception.getMessage());
+            log.warn("Can't parse an old price of wine {}\n{}", wineName, exception);
         }
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
@@ -123,7 +123,7 @@ public class ParseService {
                                 Float.parseFloat(value.replace("л", ""))
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.error("Can't parse capacity of wine {}\n{}", wineName, numberFormatException.getMessage());
+                        log.warn("Can't parse capacity of wine {}\n{}", wineName, numberFormatException.getMessage());
                     }
                     break;
                 case STRENGTH_NAME:
@@ -132,7 +132,7 @@ public class ParseService {
                                 Float.parseFloat(value)
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.error("Can't parse strength of wine {}\n{}", wineName, numberFormatException.getMessage());
+                        log.warn("Can't parse strength of wine {}\n{}", wineName, numberFormatException.getMessage());
                     }
                     break;
                 case COLOR_NAME:
@@ -150,7 +150,7 @@ public class ParseService {
                         productBuilder.year(year);
                     }
                     catch (Exception exception) {
-                        log.error("Can't parse a year {}", exception.getMessage());
+                        log.warn("Can't parse a year {}", exception.getMessage());
                     }
                     break;
             }
