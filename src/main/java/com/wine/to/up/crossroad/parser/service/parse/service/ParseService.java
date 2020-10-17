@@ -1,7 +1,9 @@
 package com.wine.to.up.crossroad.parser.service.parse.service;
 
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import net.logstash.logback.encoder.org.apache.commons.lang.math.NumberUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -40,72 +42,78 @@ public class ParseService {
      *
      * @return возвращает dto Optional<Product>
      */
-    public Optional<Product> parseProductPage(String html) {
-        Document document;
-        try {
-            document = Jsoup.parse(html);
-        } catch (Exception exception) {
-            log.warn("Can't parse html of whole product page {}", exception);
-            return Optional.empty();
-        }
+    public Optional<Product> parseProductPage(@NonNull String html) {
+        Document document = Jsoup.parse(html);
 
         Product.ProductBuilder productBuilder = Product.builder();
 
-        String wineName;
-        try {
-            wineName = document
-                    .getElementsByClass("xf-product-new__title js-product__title js-product-new-title")
-                    .get(0)
-                    .text();
-        } catch (Exception exception) {
-            log.error("Can't parse name of wine {}", exception);
+        Optional<String> wineNameO = Optional.ofNullable(
+                document
+                        .getElementsByClass("xf-product-new__title js-product__title js-product-new-title")
+                        .first()
+        )
+                .map(Element::text);
+
+        if (wineNameO.isEmpty()) {
             return Optional.empty();
         }
+        String wineName = wineNameO.get();
         productBuilder.name(wineName);
 
-        float price;
-        try {
-            productBuilder.newPrice(
-                    Float.parseFloat(
-                            document
-                                    .getElementsByClass("js-product__cost")
-                                    .get(0)
-                                    .attr("data-cost")
-                    )
-            );
-        } catch (Exception exception) {
-            log.warn("Can't parse a new price of wine {}\n{}", wineName, exception);
+        Optional<Float> newPriceO = Optional.ofNullable(
+                document
+                        .getElementsByClass("js-product__cost")
+                        .first()
+        )
+                .map(element -> element.attr("data-cost"))
+                .filter(NumberUtils::isNumber)
+                .map(Float::parseFloat);
+        if (newPriceO.isEmpty()) {
             return Optional.empty();
         }
+        productBuilder.newPrice(newPriceO.get());
 
-        try {
-            float oldPrice = Float.parseFloat(
-                    document
-                            .getElementsByClass("js-product__old-cost")
-                            .get(0)
-                            .attr("data-cost")
-            );
-            productBuilder.oldPrice(oldPrice);
-        }
-        catch (Exception exception) {
-            log.warn("Can't parse an old price of wine {}\n{}", wineName, exception);
-        }
+        Optional.ofNullable(
+                document
+                        .getElementsByClass("js-product__old-cost")
+                        .first()
+        )
+                .map(element -> element.attr("data-cost"))
+                .filter(NumberUtils::isNumber)
+                .map(Float::parseFloat)
+                .ifPresentOrElse(
+                        productBuilder::oldPrice,
+                        () -> log.warn("Can't parse an old price of wine {}", wineName)
+                );
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
         properties.forEach(property -> {
-            String name;
-            String value;
-            try {
-                name = property
-                        .getElementsByClass("xf-product-new-about-section__property__name").get(0)
-                        .text();
-                value = property
-                        .getElementsByClass("xf-product-new-about-section__property__value").get(0)
-                        .text();
-            } catch (Exception exception) {
-                log.warn("Can't get name and value of one of properties {}\n{}", wineName, exception);
+            Optional<String> nameO = Optional.ofNullable(
+                    property
+                            .getElementsByClass("xf-product-new-about-section__property__name")
+                            .first()
+            )
+                    .map(Element::text);
+
+            Optional<String> valueO = Optional.ofNullable(
+                    property
+                            .getElementsByClass("xf-product-new-about-section__property__value")
+                            .first()
+            )
+                    .map(Element::text);
+
+            if (nameO.isEmpty() || valueO.isEmpty()) {
+                log.warn(
+                        "Can't get one property of wine {}, name present: {}, value present: {}",
+                        wineName,
+                        nameO.isPresent(),
+                        valueO.isPresent()
+                );
                 return;
             }
+
+            String name = nameO.get();
+            String value = valueO.get();
 
             switch (name) {
                 case BRAND_NAME:
@@ -118,21 +126,20 @@ public class ParseService {
                     productBuilder.region(Collections.singletonList(value));
                     break;
                 case CAPACITY_NAME:
-                    try {
-                        productBuilder.capacity(
-                                Float.parseFloat(value.replace("л", ""))
-                        );
-                    } catch (NumberFormatException numberFormatException) {
-                        log.warn("Can't parse capacity of wine {}\n{}", wineName, numberFormatException);
+                    String capacity = value.replace(" л", "");
+                    if (NumberUtils.isNumber(capacity)) {
+                        productBuilder.capacity(Float.parseFloat(capacity));
+                    } else {
+                        log.warn("Can't parse capacity: {} of wine {}", capacity, wineName);
                     }
                     break;
                 case STRENGTH_NAME:
-                    try {
+                    if (NumberUtils.isNumber(value)) {
                         productBuilder.strength(
                                 Float.parseFloat(value)
                         );
-                    } catch (NumberFormatException numberFormatException) {
-                        log.warn("Can't parse strength of wine {}\n{}", wineName, numberFormatException);
+                    } else {
+                        log.warn("Can't parse strength: {} of wine {}", value, wineName);
                     }
                     break;
                 case COLOR_NAME:
@@ -145,59 +152,61 @@ public class ParseService {
                     productBuilder.grapeSort(Collections.singletonList(value));
                     break;
                 case YEAR:
-                    try {
-                        int year = Integer.parseInt(value.split(" ")[0]);
-                        productBuilder.year(year);
-                    }
-                    catch (Exception exception) {
-                        log.warn("Can't parse a year {}", exception);
+                    String[] year = value.split(" ");
+                    if (year.length > 0 && NumberUtils.isNumber(year[0])) {
+                        productBuilder.year(Integer.parseInt(year[0]));
+                    } else {
+                        log.warn("Can't parse a year {}", value);
                     }
                     break;
             }
-
-            try {
-                float rating = document
-                        .getElementsByClass("xf-product-new__rating  js-link-scroll ")
-                        .get(0)
-                        .getElementsByClass("xf-product-new__rating__star  _active ")
-                        .size();
-                productBuilder.rating(rating);
-            }
-            catch (Exception exception) {
-                log.error("Can't get a rating {}", exception);
-            }
-
-            try {
-                String link = document
-                        .getElementsByAttributeValue("rel", "canonical")
-                        .get(0)
-                        .attr("href");
-                productBuilder.link(link);
-            }
-            catch (Exception exception) {
-                log.error("Can't get a link {}", exception);
-            }
         });
 
-        try {
-            productBuilder.image(
-                    baseUrl + document.getElementsByClass("xf-product-new-card__image-block").get(0)
-                            .selectFirst("img[itemprop=image]")
-                            .getElementsByAttributeValue("itemprop", "image")
-                            .attr("src")
-            );
-        } catch (Exception exception) {
-            log.warn("Can't parse image url {}\n{}", wineName, exception);
-        }
+        Optional.ofNullable(
+                document
+                        .getElementsByClass("xf-product-new__rating  js-link-scroll ")
+                        .first()
+        )
+                .map(element -> element.getElementsByClass("xf-product-new__rating__star  _active "))
+                .map(ArrayList::size)
+                .ifPresentOrElse(
+                        productBuilder::rating,
+                        () -> log.error("Can't get a rating")
+                );
 
-        try {
-            productBuilder.description(
-                    document.getElementsByClass("xf-product-new-about-section__description").get(0)
-                            .text()
-            );
-        } catch (Exception exception) {
-            log.warn("Can't get description {}\n{}", wineName, exception);
-        }
+        Optional.ofNullable(
+                document
+                        .getElementsByAttributeValue("rel", "canonical")
+                        .first()
+        )
+                .map(element -> element.attr("href"))
+                .ifPresentOrElse(
+                        productBuilder::link,
+                        () -> log.error("Can't get a link")
+                );
+
+        Optional.ofNullable(
+                document.getElementsByClass("xf-product-new-card__image-block")
+                        .first()
+        )
+                .map(element -> element.selectFirst("img[itemprop=image]"))
+                .map(element -> element.getElementsByAttributeValue("itemprop", "image"))
+                .map(elements -> elements.attr("src"))
+                .ifPresentOrElse(
+                        partUrl -> productBuilder.image(baseUrl + partUrl),
+                        () -> log.warn("Can't parse image url {}", wineName)
+                );
+
+        Optional.ofNullable(
+                document
+                        .getElementsByClass("xf-product-new-about-section__description")
+                        .first()
+        )
+                .map(Element::text)
+                .ifPresentOrElse(
+                        productBuilder::description,
+                        () -> log.warn("Can't get description {}", wineName)
+                );
 
         return Optional.of(productBuilder.build());
     }
@@ -209,16 +218,16 @@ public class ParseService {
      */
     public List<String> parseUrlsCatalogPage(String html) {
         List<String> productsUrls = new ArrayList<>();
-        try {
-            Document document = Jsoup.parse(html);
-            for (Element item : document.select(".xf-catalog__item")) {
-                productsUrls.add(
-                        parseProductCardAndGetUrl(item.child(0))
+        Document document = Jsoup.parse(html);
+        Optional.ofNullable(document.select(".xf-catalog__item"))
+                .ifPresentOrElse(
+                        elements -> elements.forEach(item -> {
+                            if (item.childrenSize() > 0) {
+                                parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
+                            }
+                        }),
+                        () -> log.warn("Can't parse this page")
                 );
-            }
-        } catch (Exception e) {
-            log.warn("Can't parse this page");
-        }
 
         return Collections.unmodifiableList(productsUrls);
     }
@@ -228,10 +237,12 @@ public class ParseService {
      *
      * @return ссылку на полную страницу вина
      */
-    private String parseProductCardAndGetUrl(Element productCard) {
-        return productCard
-                .getElementsByClass("xf-product__title").get(0)
-                .getElementsByTag("a")
-                .attr("href");
+    private Optional<String> parseProductCardAndGetUrl(Element productCard) {
+        return Optional.ofNullable(
+                productCard
+                .getElementsByClass("xf-product__title").first()
+        )
+                .map(element -> element.getElementsByTag("a"))
+                .map(elements -> elements.attr("href"));
     }
 }
