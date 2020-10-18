@@ -21,10 +21,19 @@ import java.util.Optional;
 public class ParseService {
     private static final String BRAND_NAME = "Торговая марка";
     private static final String COUNTRY_NAME = "Страна/регион";
+    private static final String REGION_NAME = "Регион";
     private static final String CAPACITY_NAME = "Объем";
     private static final String STRENGTH_NAME = "Крепость, %";
     private static final String COLOR_NAME = "Цвет";
     private static final String SUGAR_NAME = "Сахaр";
+    private static final String YEAR = "Урожай";
+    private static final String GRAPE_SORT_NAME = "Сорт винограда";
+
+    private final String baseUrl;
+
+    public ParseService(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
     /**
      * Парсинг страницы вина.
@@ -36,7 +45,7 @@ public class ParseService {
         try {
             document = Jsoup.parse(html);
         } catch (Exception exception) {
-            log.warn("Can't parse html of whole product page {}", exception.getMessage());
+            log.warn("Can't parse html of whole product page {}", exception);
             return Optional.empty();
         }
 
@@ -49,25 +58,38 @@ public class ParseService {
                     .get(0)
                     .text();
         } catch (Exception exception) {
-            log.error("Can't parse name of wine {}", exception.getMessage());
+            log.error("Can't parse name of wine {}", exception);
             return Optional.empty();
         }
         productBuilder.name(wineName);
 
         float price;
         try {
-            price = Float.parseFloat(
-                    document
-                            .getElementsByClass("js-price-rouble")
-                            .get(0)
-                            .text()
-                            .replace(" ", "")
+            productBuilder.newPrice(
+                    Float.parseFloat(
+                            document
+                                    .getElementsByClass("js-product__cost")
+                                    .get(0)
+                                    .attr("data-cost")
+                    )
             );
         } catch (Exception exception) {
-            log.error("Can't parse price of wine {}", exception.getMessage());
+            log.warn("Can't parse a new price of wine {}\n{}", wineName, exception);
             return Optional.empty();
         }
-        productBuilder.price(price);
+
+        try {
+            float oldPrice = Float.parseFloat(
+                    document
+                            .getElementsByClass("js-product__old-cost")
+                            .get(0)
+                            .attr("data-cost")
+            );
+            productBuilder.oldPrice(oldPrice);
+        }
+        catch (Exception exception) {
+            log.warn("Can't parse an old price of wine {}\n{}", wineName, exception);
+        }
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
         properties.forEach(property -> {
@@ -81,7 +103,7 @@ public class ParseService {
                         .getElementsByClass("xf-product-new-about-section__property__value").get(0)
                         .text();
             } catch (Exception exception) {
-                log.warn("Can't get name and value of one of properties {}", exception.getMessage());
+                log.warn("Can't get name and value of one of properties {}\n{}", wineName, exception);
                 return;
             }
 
@@ -92,13 +114,16 @@ public class ParseService {
                 case COUNTRY_NAME:
                     productBuilder.country(value);
                     break;
+                case REGION_NAME:
+                    productBuilder.region(Collections.singletonList(value));
+                    break;
                 case CAPACITY_NAME:
                     try {
                         productBuilder.capacity(
                                 Float.parseFloat(value.replace("л", ""))
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.error("Can't parse capacity of wine {}", numberFormatException.getMessage());
+                        log.warn("Can't parse capacity of wine {}\n{}", wineName, numberFormatException);
                     }
                     break;
                 case STRENGTH_NAME:
@@ -107,7 +132,7 @@ public class ParseService {
                                 Float.parseFloat(value)
                         );
                     } catch (NumberFormatException numberFormatException) {
-                        log.error("Can't parse strength of wine {}", numberFormatException.getMessage());
+                        log.warn("Can't parse strength of wine {}\n{}", wineName, numberFormatException);
                     }
                     break;
                 case COLOR_NAME:
@@ -116,8 +141,63 @@ public class ParseService {
                 case SUGAR_NAME:
                     productBuilder.sugar(value);
                     break;
+                case GRAPE_SORT_NAME:
+                    productBuilder.grapeSort(Collections.singletonList(value));
+                    break;
+                case YEAR:
+                    try {
+                        int year = Integer.parseInt(value.split(" ")[0]);
+                        productBuilder.year(year);
+                    }
+                    catch (Exception exception) {
+                        log.warn("Can't parse a year {}", exception);
+                    }
+                    break;
+            }
+
+            try {
+                float rating = document
+                        .getElementsByClass("xf-product-new__rating  js-link-scroll ")
+                        .get(0)
+                        .getElementsByClass("xf-product-new__rating__star  _active ")
+                        .size();
+                productBuilder.rating(rating);
+            }
+            catch (Exception exception) {
+                log.error("Can't get a rating {}", exception);
+            }
+
+            try {
+                String link = document
+                        .getElementsByAttributeValue("rel", "canonical")
+                        .get(0)
+                        .attr("href");
+                productBuilder.link(link);
+            }
+            catch (Exception exception) {
+                log.error("Can't get a link {}", exception);
             }
         });
+
+        try {
+            productBuilder.image(
+                    baseUrl + document.getElementsByClass("xf-product-new-card__image-block").get(0)
+                            .selectFirst("img[itemprop=image]")
+                            .getElementsByAttributeValue("itemprop", "image")
+                            .attr("src")
+            );
+        } catch (Exception exception) {
+            log.warn("Can't parse image url {}\n{}", wineName, exception);
+        }
+
+        try {
+            productBuilder.description(
+                    document.getElementsByClass("xf-product-new-about-section__description").get(0)
+                            .text()
+            );
+        } catch (Exception exception) {
+            log.warn("Can't get description {}\n{}", wineName, exception);
+        }
 
         return Optional.of(productBuilder.build());
     }
@@ -129,7 +209,7 @@ public class ParseService {
      */
     public List<String> parseUrlsCatalogPage(String html) {
         List<String> productsUrls = new ArrayList<>();
-        try { //TODO make try/catch more granular
+        try {
             Document document = Jsoup.parse(html);
             for (Element item : document.select(".xf-catalog__item")) {
                 productsUrls.add(

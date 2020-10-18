@@ -4,6 +4,7 @@ import com.wine.to.up.crossroad.parser.service.configuration.JobConfiguration;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
 import org.junit.Before;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * @author Maxim Kuznetsov
  * @since 24.09.2020
  */
+@Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class ExportProductListJobTest {
@@ -47,7 +49,7 @@ public class ExportProductListJobTest {
                 .orElse(Collections.emptyList());
         Assert.assertTrue(winesUrlFromPage.size() > 0);
 
-        List<Product> wines = winesUrlFromPage.stream()
+        List<Product> wines = winesUrlFromPage.parallelStream()
                 .map(requestsService::getItemHtml)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -57,33 +59,68 @@ public class ExportProductListJobTest {
                 .collect(Collectors.toList());
 
         int name = 0,
-                brand = 0,
-                country = 0,
-                capacity = 0,
-                strength = 0,
-                color = 0,
-                sugar = 0,
-                price = 0;
+            brand = 0,
+            country = 0,
+            region = 0,
+            capacity = 0,
+            strength = 0,
+            color = 0,
+            sugar = 0,
+            price = 0,
+            image = 0,
+            grape_sort = 0,
+            description = 0,
+            oldPrice = 0,
+            rating = 0;
 
         for (Product product : wines) {
             name += isNotNullable(product.getName());
             brand += isNotNullable(product.getBrand());
             country += isNotNullable(product.getCountry());
+            region += isNotNullable(product.getRegion());
             capacity += isNotZero(product.getCapacity());
             strength += isNotZero(product.getStrength());
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
-            price += isNotZero(product.getPrice());
+            price += isNotZero(product.getNewPrice());
+            oldPrice += isNotZero(product.getOldPrice());
+            rating += isNotZero(product.getRating());
+            image += isNotNullable(product.getImage());
+            grape_sort += isNotNullable(product.getGrapeSort());
+            description += isNotNullable(product.getDescription());
         }
+
+        log.info(
+                "Successfully parsed:" +
+                        "\nnames: {}" +
+                        "\nbrands: {}" +
+                        "\ncountries: {}" +
+                        "\nregions: {}" +
+                        "\ncapacities: {}" +
+                        "\nstrengths: {}" +
+                        "\ncolors: {}" +
+                        "\nsugars: {}" +
+                        "\nprices: {}" +
+                        "\nimages: {}" +
+                        "\ngrape_sorts: {}" +
+                        "\ndescriptions: {}",
+                name, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description
+        );
 
         Validate.isTrue(name > 0);
         Validate.isTrue(brand > 0);
         Validate.isTrue(country > 0);
+        Validate.isTrue(region > 0);
         Validate.isTrue(capacity > 0);
         Validate.isTrue(strength > 0);
         Validate.isTrue(color > 0);
         Validate.isTrue(sugar > 0);
         Validate.isTrue(price > 0);
+        Validate.isTrue(oldPrice == 0);
+        Validate.isTrue(rating > 0);
+        Validate.isTrue(image > 0);
+        Validate.isTrue(grape_sort > 0);
+        Validate.isTrue(description > 0);
     }
 
     @Test
