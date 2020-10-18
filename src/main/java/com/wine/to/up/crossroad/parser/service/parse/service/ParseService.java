@@ -11,7 +11,6 @@ import org.jsoup.select.Elements;
 
 import java.util.*;
 
-
 /**
  * Сервис для парсинга html страниц с каталогом и
  *
