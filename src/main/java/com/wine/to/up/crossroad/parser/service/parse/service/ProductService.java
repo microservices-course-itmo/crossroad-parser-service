@@ -31,7 +31,8 @@ public class ProductService {
 
     public Optional<List<Product>> getParsedProductList() {
         try {
-            List<String> winesUrl = getWinesUrl();
+            List<String> winesUrl = getWinesUrl(false);
+            winesUrl.addAll(getWinesUrl(true));
             List<Product> wines = getParsedWines(winesUrl);
             log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
             return Optional.of(wines);
@@ -41,14 +42,14 @@ public class ProductService {
         }
     }
 
-    private List<String> getWinesUrl() {
+    private List<String> getWinesUrl(boolean sparkling) {
         List<String> winesUrl = new ArrayList<>();
 
-        requestsService.getJson(1).ifPresent(pojo -> {
+        requestsService.getJson(sparkling,1).ifPresent(pojo -> {
             int pages = getPages(pojo);
             for (int i = 1; i <= pages; i++) {
                 List<String> winesUrlFromPage = requestsService
-                        .getHtml(i)
+                        .getHtml(sparkling, i)
                         .map(parseService::parseUrlsCatalogPage)
                         .orElse(Collections.emptyList());
                 if (winesUrlFromPage.size() == 0) {

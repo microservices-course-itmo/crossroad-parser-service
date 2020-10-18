@@ -43,8 +43,9 @@ public class ExportProductListJobTest {
 
     @Test
     public void parseFirstPage() {
+        boolean parseSparkling = true;
         List<String> winesUrlFromPage = requestsService
-                .getHtml(1)
+                .getHtml(parseSparkling, 1)
                 .map(parseService::parseUrlsCatalogPage)
                 .orElse(Collections.emptyList());
         Assert.assertTrue(winesUrlFromPage.size() > 0);
@@ -71,7 +72,9 @@ public class ExportProductListJobTest {
             grape_sort = 0,
             description = 0,
             oldPrice = 0,
-            rating = 0;
+            rating = 0,
+            sparkling = 0;
+
 
         for (Product product : wines) {
             name += isNotNullable(product.getName());
@@ -88,6 +91,7 @@ public class ExportProductListJobTest {
             image += isNotNullable(product.getImage());
             grape_sort += isNotNullable(product.getGrapeSort());
             description += isNotNullable(product.getDescription());
+            sparkling += product.isSparkling() ? 1 : 0;
         }
 
         log.info(
@@ -103,8 +107,9 @@ public class ExportProductListJobTest {
                         "\nprices: {}" +
                         "\nimages: {}" +
                         "\ngrape_sorts: {}" +
-                        "\ndescriptions: {}",
-                name, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description
+                        "\ndescriptions: {}" +
+                        "\nsparkling: {}",
+                name, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling
         );
 
         Validate.isTrue(name > 0);
@@ -121,6 +126,9 @@ public class ExportProductListJobTest {
         Validate.isTrue(image > 0);
         Validate.isTrue(grape_sort > 0);
         Validate.isTrue(description > 0);
+        if (parseSparkling) {
+            Validate.isTrue(sparkling > 0);
+        }
     }
 
     @Test
