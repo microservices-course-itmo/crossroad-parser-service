@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.configuration;
 
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -34,5 +35,10 @@ public class ParserConfiguration {
     @Bean
     ParseService parseService() {
         return new ParseService(baseUrl);
+    }
+
+    @Bean
+    ProductService productService(ParseService parseService, RequestsService requestsService) {
+        return new ProductService(parseService, requestsService);
     }
 }

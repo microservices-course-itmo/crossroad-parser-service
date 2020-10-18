@@ -6,16 +6,13 @@ import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.UpdateProducts;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -30,18 +27,16 @@ import java.util.stream.Collectors;
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
 
-    private final RequestsService requestsService;
-    private final ParseService parseService;
+    private final ProductService productService;
     private final KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService;
 
 
     private static final String SHOP_LINK = "perekrestok.ru";
 
 
-    public ExportProductListJob(RequestsService requestsService, ParseService parseService,
+    public ExportProductListJob(ProductService productService,
                                 KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService) {
-        this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
-        this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
+        this.productService = Objects.requireNonNull(productService, "Can't get productService");
         this.kafkaSendMessageService = Objects.requireNonNull(kafkaSendMessageService, "Can't get kafkaSendMessageService");
     }
 
@@ -53,44 +48,23 @@ public class ExportProductListJob {
      */
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
-        log.info("Job started");
-        List<String> winesUrl = new ArrayList<>();
-
-        requestsService.getJson(1).ifPresent(pojo -> {
-            int pages = (int) Math.ceil((double) pojo.getCount() / 30); //TODO kmosunoff вынести в отдельный метод
-            for (int i = 1; i <= pages; i++) {
-                List<String> winesUrlFromPage = requestsService
-                        .getHtml(i)
-                        .map(parseService::parseUrlsCatalogPage)
-                        .orElse(Collections.emptyList());
-                if (winesUrlFromPage.size() == 0) {
-                    log.warn("Page {} parsed, but no urls found", i);
-                }
-                winesUrl.addAll(winesUrlFromPage);
-            }
-        });
-
-        log.info("Found {} urls", winesUrl.size());
-
+        long startTime = new Date().getTime();
+        log.info("Start run job method at {}", startTime);
         try {
-            List<UpdateProducts.Product> wines = winesUrl.parallelStream()
-                    .map(requestsService::getItemHtml)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .map(parseService::parseProductPage)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .peek(product -> product.setShopLink(SHOP_LINK))
-                    .map(this::getProtobufProduct)
-                    .collect(Collectors.toList());
+            Optional<List<Product>> wineDtoList = productService.getParsedProductList();
+            List<UpdateProducts.Product> wines = new ArrayList<>();
+            if (wineDtoList.isPresent()) {
+                wines = wineDtoList.get().parallelStream()
+                        .map(this::getProtobufProduct)
+                        .collect(Collectors.toList());
+            }
 
             UpdateProducts.UpdateProductsMessage message = UpdateProducts.UpdateProductsMessage.newBuilder()
                     .setShopLink(SHOP_LINK)
                     .addAllProducts(wines)
                     .build();
-
             kafkaSendMessageService.sendMessage(message);
-            log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
+            log.info("End run job method at {}; duration = {}", new Date().getTime(), (new Date().getTime() - startTime));
         } catch (Exception exception) {
             log.error("Can't export product list", exception);
         }
