@@ -39,6 +39,6 @@ public class Product {
     private String gastronomy;
     private String taste;
     private String flavor;
-    private Float rating;
+    private float rating;
     private boolean sparkling;
 }
