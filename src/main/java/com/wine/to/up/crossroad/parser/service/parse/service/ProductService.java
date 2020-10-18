@@ -1,5 +1,6 @@
 package com.wine.to.up.crossroad.parser.service.parse.service;
 
+import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,10 +23,14 @@ public class ProductService {
 
     private final ParseService parseService;
     private final RequestsService requestsService;
+    private final CrossroadParserServiceMetricsCollector metricsCollector;
 
-    public ProductService(ParseService parseService, RequestsService requestsService) {
+    public ProductService(ParseService parseService,
+                          RequestsService requestsService,
+                          CrossroadParserServiceMetricsCollector metricsCollector) {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
-        this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
+        this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");;
+        this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
     }
 
     public Optional<List<Product>> getParsedProductList() {
@@ -33,10 +38,15 @@ public class ProductService {
             List<String> winesUrl = getWinesUrl(false);
             winesUrl.addAll(getWinesUrl(true));
             List<Product> wines = getParsedWines(winesUrl);
+
             log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
+            metricsCollector.parsedWines(wines.size());
+
             return Optional.of(wines);
         } catch (Exception ex) {
             log.error("Can't get parsed product list");
+            metricsCollector.parsedWines(0);
+
             return Optional.empty();
         }
     }
