@@ -1,5 +1,6 @@
 package com.wine.to.up.crossroad.parser.service.configuration;
 
+import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
@@ -38,7 +39,7 @@ public class ParserConfiguration {
     }
 
     @Bean
-    ProductService productService(ParseService parseService, RequestsService requestsService) {
-        return new ProductService(parseService, requestsService);
+    ProductService productService(ParseService parseService, RequestsService requestsService, CrossroadParserServiceMetricsCollector metricsCollector) {
+        return new ProductService(parseService, requestsService, metricsCollector);
     }
 }

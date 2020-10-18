@@ -1,12 +1,17 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
+import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
+import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.Time;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -27,15 +32,18 @@ public class ExportProductListJob {
 
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
+    private final CrossroadParserServiceMetricsCollector metricsCollector;
 
 
     private static final String SHOP_LINK = "perekrestok.ru";
 
 
     public ExportProductListJob(ProductService productService,
-                                KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService) {
+                                KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService,
+                                CrossroadParserServiceMetricsCollector metricsCollector) {
         this.productService = Objects.requireNonNull(productService, "Can't get productService");
         this.kafkaSendMessageService = Objects.requireNonNull(kafkaSendMessageService, "Can't get kafkaSendMessageService");
+        this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
     }
 
     /**
@@ -48,6 +56,7 @@ public class ExportProductListJob {
     public void runJob() {
         long startTime = new Date().getTime();
         log.info("Start run job method at {}", startTime);
+
         try {
             Optional<List<Product>> wineDtoList = productService.getParsedProductList();
             List<ParserApi.Wine> wines = new ArrayList<>();
@@ -61,11 +70,14 @@ public class ExportProductListJob {
                     .setShopLink(SHOP_LINK)
                     .addAllWines(wines)
                     .build();
+
             kafkaSendMessageService.sendMessage(message);
-            log.info("End run job method at {}; duration = {}", new Date().getTime(), (new Date().getTime() - startTime));
         } catch (Exception exception) {
             log.error("Can't export product list", exception);
         }
+
+        log.info("End run job method at {}; duration = {}", new Date().getTime(), (new Date().getTime() - startTime));
+        metricsCollector.productListJob(new Date().getTime() - startTime);
     }
 
     private ParserApi.Wine getProtobufProduct(Product wine) {
@@ -106,7 +118,9 @@ public class ExportProductListJob {
         if (wine.getGrapeSort() != null) {
             builder.addAllGrapeSort(wine.getGrapeSort());
         }
-        builder.setYear(wine.getYear());
+        if (wine.getYear() != null) {
+            builder.setYear(wine.getYear());
+        }
         if (wine.getDescription() != null) {
             builder.setDescription(wine.getDescription());
         }
