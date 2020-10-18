@@ -2,14 +2,10 @@ package com.wine.to.up.crossroad.parser.service.configuration;
 
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
-import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
-import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
-import com.wine.to.up.parser.common.api.schema.UpdateProducts;
+import com.wine.to.up.parser.common.api.schema.ParserApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
@@ -26,7 +22,7 @@ public class JobConfiguration {
 
     @Bean
     ExportProductListJob exportProductListJob(ProductService productService,
-                                              KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService) {
+                                              KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService) {
         return new ExportProductListJob(productService, kafkaSendMessageService);
     }
 }

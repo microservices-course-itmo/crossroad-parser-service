@@ -20,7 +20,6 @@ import java.util.List;
 @ToString
 public class Product {
     private String name;
-    private String shopLink;
     private Float oldPrice;
     private Float newPrice;
     private String link;

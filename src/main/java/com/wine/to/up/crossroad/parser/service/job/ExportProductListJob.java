@@ -4,10 +4,8 @@ import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
-import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
-import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
-import com.wine.to.up.parser.common.api.schema.UpdateProducts;
+import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,14 +26,14 @@ import java.util.stream.Collectors;
 public class ExportProductListJob {
 
     private final ProductService productService;
-    private final KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService;
+    private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
 
 
     private static final String SHOP_LINK = "perekrestok.ru";
 
 
     public ExportProductListJob(ProductService productService,
-                                KafkaMessageSender<UpdateProducts.UpdateProductsMessage> kafkaSendMessageService) {
+                                KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService) {
         this.productService = Objects.requireNonNull(productService, "Can't get productService");
         this.kafkaSendMessageService = Objects.requireNonNull(kafkaSendMessageService, "Can't get kafkaSendMessageService");
     }
@@ -52,16 +50,16 @@ public class ExportProductListJob {
         log.info("Start run job method at {}", startTime);
         try {
             Optional<List<Product>> wineDtoList = productService.getParsedProductList();
-            List<UpdateProducts.Product> wines = new ArrayList<>();
+            List<ParserApi.Wine> wines = new ArrayList<>();
             if (wineDtoList.isPresent()) {
                 wines = wineDtoList.get().parallelStream()
                         .map(this::getProtobufProduct)
                         .collect(Collectors.toList());
             }
 
-            UpdateProducts.UpdateProductsMessage message = UpdateProducts.UpdateProductsMessage.newBuilder()
+            ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
                     .setShopLink(SHOP_LINK)
-                    .addAllProducts(wines)
+                    .addAllWines(wines)
                     .build();
             kafkaSendMessageService.sendMessage(message);
             log.info("End run job method at {}; duration = {}", new Date().getTime(), (new Date().getTime() - startTime));
@@ -70,10 +68,10 @@ public class ExportProductListJob {
         }
     }
 
-    private UpdateProducts.Product getProtobufProduct(Product wine) {
-        UpdateProducts.Product.Sugar sugar = convertSugar(wine.getSugar());
-        UpdateProducts.Product.Color color = convertColor(wine.getColor());
-        var builder = UpdateProducts.Product.newBuilder();
+    private ParserApi.Wine getProtobufProduct(Product wine) {
+        ParserApi.Wine.Sugar sugar = convertSugar(wine.getSugar());
+        ParserApi.Wine.Color color = convertColor(wine.getColor());
+        var builder = ParserApi.Wine.newBuilder();
 
         if (wine.getName() != null) {
             builder.setName(wine.getName());
@@ -125,11 +123,11 @@ public class ExportProductListJob {
         return builder.build();
     }
 
-    private UpdateProducts.Product.Sugar convertSugar(String value) {
+    private ParserApi.Wine.Sugar convertSugar(String value) {
         return Sugar.resolve(value);
     }
 
-    private UpdateProducts.Product.Color convertColor(String value) {
+    private ParserApi.Wine.Color convertColor(String value) {
         return Color.resolve(value);
     }
 

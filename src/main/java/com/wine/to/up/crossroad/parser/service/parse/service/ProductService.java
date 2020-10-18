@@ -2,7 +2,6 @@ package com.wine.to.up.crossroad.parser.service.parse.service;
 
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
-import com.wine.to.up.parser.common.api.schema.UpdateProducts;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -74,7 +73,6 @@ public class ProductService {
                 .map(parseService::parseProductPage)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .peek(product -> product.setShopLink(SHOP_LINK))
                 .collect(Collectors.toList());
     }
 }
