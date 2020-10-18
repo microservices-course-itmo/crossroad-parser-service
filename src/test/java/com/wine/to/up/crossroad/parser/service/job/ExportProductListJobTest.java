@@ -1,20 +1,16 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
-import com.wine.to.up.crossroad.parser.service.configuration.JobConfiguration;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Collections;
@@ -125,7 +121,7 @@ public class ExportProductListJobTest {
 
     @Test
     @Ignore
-    public void should_true_becauseTestRun() {
+    public void shouldTrueBecauseTestRun() {
         exportProductListJob.runJob();
     }
 
