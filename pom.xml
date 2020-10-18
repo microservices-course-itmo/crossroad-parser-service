@@ -19,7 +19,7 @@
         <current-version>0.3.0</current-version>
 
         <service.commonlib.version>0.2.1-SNAPSHOT</service.commonlib.version>
-        <parser.common.api.version>0.2.1-SNAPSHOT</parser.common.api.version>
+        <parser.common.api.version>0.2.2-SNAPSHOT</parser.common.api.version>
     </properties>
 
     <dependencies>

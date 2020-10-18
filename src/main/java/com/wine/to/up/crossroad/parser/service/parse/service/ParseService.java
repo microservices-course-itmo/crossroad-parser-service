@@ -169,6 +169,7 @@ public class ParseService {
         )
                 .map(element -> element.getElementsByClass("xf-product-new__rating__star  _active "))
                 .map(ArrayList::size)
+                .map(Float::valueOf)
                 .ifPresentOrElse(
                         productBuilder::rating,
                         () -> log.error("Can't get a rating")
