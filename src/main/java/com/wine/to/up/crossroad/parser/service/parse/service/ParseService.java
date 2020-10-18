@@ -7,10 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Сервис для парсинга html страниц с каталогом и
@@ -62,6 +59,9 @@ public class ParseService {
             return Optional.empty();
         }
         productBuilder.name(wineName);
+        if (wineName.contains("игристое")) {
+            productBuilder.sparkling(true);
+        }
 
         float price;
         try {
@@ -115,7 +115,7 @@ public class ParseService {
                     productBuilder.country(value);
                     break;
                 case REGION_NAME:
-                    productBuilder.region(Collections.singletonList(value));
+                    productBuilder.region(Arrays.asList(value.split(", ")));
                     break;
                 case CAPACITY_NAME:
                     try {
@@ -142,7 +142,7 @@ public class ParseService {
                     productBuilder.sugar(value);
                     break;
                 case GRAPE_SORT_NAME:
-                    productBuilder.grapeSort(Collections.singletonList(value));
+                    productBuilder.grapeSort(Arrays.asList(value.split(", ")));
                     break;
                 case YEAR:
                     try {
@@ -212,9 +212,11 @@ public class ParseService {
         try {
             Document document = Jsoup.parse(html);
             for (Element item : document.select(".xf-catalog__item")) {
-                productsUrls.add(
-                        parseProductCardAndGetUrl(item.child(0))
-                );
+                if (item.child(0).text().contains("Вино")) {
+                    productsUrls.add(
+                            parseProductCardAndGetUrl(item.child(0))
+                    );
+                }
             }
         } catch (Exception e) {
             log.warn("Can't parse this page");
