@@ -38,7 +38,6 @@ public class RequestsService {
                 ? "/catalog/alkogol/shampanskoe-igristye-vina"
                 : "/catalog/alkogol/vino";
         String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
-
         try {
             String json = Jsoup.connect(url)
                     .userAgent(userAgent)
@@ -49,7 +48,7 @@ public class RequestsService {
             CatalogResponsePojo result = new ObjectMapper().readValue(json, CatalogResponsePojo.class);
             return Optional.of(result);
         } catch (Exception e) {
-            log.error("Cannot get json response: {}", url, e);
+            log.error("Cannot get json response: {} {}", url, e);
             return Optional.empty();
         }
     }
@@ -69,7 +68,7 @@ public class RequestsService {
                     .execute().body();
             return Optional.of(result);
         } catch (Exception e) {
-            log.error("Cannot get json response: {}", baseUrl + url, e);
+            log.error("Cannot get json response: {} {}", baseUrl + url, e);
             return Optional.empty();
         }
     }
