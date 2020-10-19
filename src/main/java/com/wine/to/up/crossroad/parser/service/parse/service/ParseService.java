@@ -222,13 +222,18 @@ public class ParseService {
         Document document = Jsoup.parse(html);
         Optional.ofNullable(document.select(".xf-catalog__item"))
                 .ifPresentOrElse(
-                        elements -> elements.forEach(item -> {
-                            if (item.childrenSize() > 0 && item.child(0).text().contains("Вино")) {
-                                parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
-                            }
-                        }),
+                        elements -> {
+                            elements.forEach(item -> {
+                                if (item.childrenSize() > 0 && item.child(0).text().contains("Вино")) {
+                                    parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
+                                }
+                            });
+                            log.info("Found {} urls on the current page", elements.size());
+
+                        },
                         () -> log.warn("Can't parse this page")
                 );
+
 
         return Collections.unmodifiableList(productsUrls);
     }
@@ -241,7 +246,7 @@ public class ParseService {
     private Optional<String> parseProductCardAndGetUrl(Element productCard) {
         return Optional.ofNullable(
                 productCard
-                .getElementsByClass("xf-product__title").first()
+                        .getElementsByClass("xf-product__title").first()
         )
                 .map(element -> element.getElementsByTag("a"))
                 .map(elements -> elements.attr("href"));
