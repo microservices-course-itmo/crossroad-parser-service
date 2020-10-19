@@ -65,6 +65,7 @@ public class ProductService {
                     log.warn("Page {} parsed, but no urls found", i);
                 }
                 winesUrl.addAll(winesUrlFromPage);
+                log.info("Page {} parsed", i);
             }
         });
         log.info("Found {} urls", winesUrl.size());
