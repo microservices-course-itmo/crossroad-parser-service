@@ -7,28 +7,24 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Optional;
 
 
 @Slf4j
-@SpringBootTest(classes = RequestsService.class)
-@PropertySource("classpath:crossroad-site.properties")
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class RequestsServiceTest {
+    @Autowired
     private RequestsService requestsService;
 
-    @Before
-    public void init() {
-        ApplicationContext context = new AnnotationConfigApplicationContext(ParserConfiguration.class);
-        requestsService = (RequestsService) context.getBean("requestsService");
-    }
-
-
-    @Ignore
     @Test
     public void testDeserialization() {
         Optional<CatalogResponsePojo> pojo = requestsService.getJson(1);
