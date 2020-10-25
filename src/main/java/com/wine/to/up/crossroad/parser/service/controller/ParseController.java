@@ -53,7 +53,7 @@ public class ParseController {
         return wines.orElseGet(ArrayList::new);
     }
 
-    @GetMapping(value = "/site/csv", produces = "text/plain;charset=UTF-8")
+    @GetMapping(value = "/site_csv", produces = "text/plain;charset=UTF-8")
     @ApiOperation(value = "Парсинг сайта по запросу пользователя",
             notes = "Возвращает результат парсинга сайта в формате CSV")
     public void parseSiteCsv(HttpServletResponse response) {
