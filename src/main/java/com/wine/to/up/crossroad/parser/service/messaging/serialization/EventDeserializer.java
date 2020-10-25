@@ -1,21 +1,21 @@
 package com.wine.to.up.crossroad.parser.service.messaging.serialization;
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.wine.to.up.parser.common.api.schema.UpdateProducts;
+import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
 /**
- * Deserializer for {@link UpdateProducts.UpdateProductsMessage}
+ * Deserializer for {@link ParserApi.WineParsedEvent}
  */
 @Slf4j
-public class EventDeserializer implements Deserializer<UpdateProducts.UpdateProductsMessage> {
+public class EventDeserializer implements Deserializer<ParserApi.WineParsedEvent> {
     /**
      * {@inheritDoc}
      */
 
     @Override
-    public UpdateProducts.UpdateProductsMessage deserialize(String topic, byte[] bytes) {
+    public ParserApi.WineParsedEvent deserialize(String topic, byte[] bytes) {
         try {
-            return UpdateProducts.UpdateProductsMessage.parseFrom(bytes);
+            return ParserApi.WineParsedEvent.parseFrom(bytes);
         } catch (InvalidProtocolBufferException e) {
             log.error("Failed to deserialize message from topic: {}. {}", topic, e);
             return null;

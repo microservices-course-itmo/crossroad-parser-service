@@ -30,8 +30,16 @@ public class RequestsService {
     }
 
     public Optional<CatalogResponsePojo> getJson(int page) {
+        return getJson(false, page);
+    }
+
+    public Optional<CatalogResponsePojo> getJson(boolean sparkling, int page) {
+        String relativeUrl = sparkling
+                ? "/catalog/alkogol/shampanskoe-igristye-vina"
+                : "/catalog/alkogol/vino";
+        String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
         try {
-            String json = Jsoup.connect(baseUrl + String.format("/catalog/alkogol/vino?page=%d&ajax=true", page))
+            String json = Jsoup.connect(url)
                     .userAgent(userAgent)
                     .timeout(timeout)
                     .data("region", region)
@@ -39,15 +47,14 @@ public class RequestsService {
                     .execute().body();
             CatalogResponsePojo result = new ObjectMapper().readValue(json, CatalogResponsePojo.class);
             return Optional.of(result);
-        }
-        catch (Exception e) {
-            log.error("Cannot get json response: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Cannot get json response: {} {}", url, e);
             return Optional.empty();
         }
     }
 
-    public Optional<String> getHtml(int page) {
-        Optional<CatalogResponsePojo> result = getJson(page);
+    public Optional<String> getHtml(boolean sparkling, int page) {
+        Optional<CatalogResponsePojo> result = getJson(sparkling, page);
         return result.map(CatalogResponsePojo::getHtml);
     }
 
@@ -60,9 +67,8 @@ public class RequestsService {
                     .ignoreContentType(true)
                     .execute().body();
             return Optional.of(result);
-        }
-        catch (Exception e) {
-            log.error("Cannot get json response: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Cannot get json response: {} {}", baseUrl + url, e);
             return Optional.empty();
         }
     }
