@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.*;
 
 /**
@@ -50,6 +51,27 @@ public class ParseController {
 
         metricsCollector.parseSite(new Date().getTime() - startTime);
         return wines.orElseGet(ArrayList::new);
+    }
+
+    @GetMapping(value = "/site_csv", produces = "text/plain;charset=UTF-8")
+    @ApiOperation(value = "Парсинг сайта по запросу пользователя",
+            notes = "Возвращает результат парсинга сайта в формате CSV")
+    public void parseSiteCsv(HttpServletResponse response) {
+        long startTime = new Date().getTime();
+
+        response.setCharacterEncoding("UTF-8");
+
+        Optional<List<Product>> wines = productService.getParsedProductList();
+
+        if (wines.isPresent()) {
+            try {
+                productService.writeParsedProductListCsv(response.getWriter(), wines.get());
+            } catch (Exception ex) {
+                log.error("Failed to write response {}", ex);
+            }
+        }
+
+        metricsCollector.parseSiteCsv(new Date().getTime() - startTime);
     }
 
     @GetMapping("/start/job")

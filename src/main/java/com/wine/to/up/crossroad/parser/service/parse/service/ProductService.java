@@ -1,10 +1,14 @@
 package com.wine.to.up.crossroad.parser.service.parse.service;
 
+import com.opencsv.bean.StatefulBeanToCsv;
+import com.opencsv.bean.StatefulBeanToCsvBuilder;
+import com.opencsv.exceptions.CsvException;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,6 +53,12 @@ public class ProductService {
 
             return Optional.empty();
         }
+    }
+
+    public void writeParsedProductListCsv(PrintWriter writer, List<Product> products) throws CsvException {
+        StatefulBeanToCsv<Product> btcsv = new StatefulBeanToCsvBuilder<Product>(writer).build();
+
+        btcsv.write(products);
     }
 
     private List<String> getWinesUrl(boolean sparkling) {
