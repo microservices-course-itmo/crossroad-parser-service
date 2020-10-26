@@ -56,7 +56,21 @@ public class ParseService {
         }
         String wineName = wineNameO.get();
         productBuilder.name(wineName);
-        if (wineName.contains("игристое")) {
+
+        Optional<String> descriptionO = Optional.ofNullable(
+                document
+                        .getElementsByClass("xf-product-new-about-section__description")
+                        .first()
+        )
+                .map(Element::text);
+
+        if (descriptionO.isEmpty()) {
+            return Optional.empty();
+        }
+        String description = descriptionO.get();
+        productBuilder.description(description);
+
+        if (description.contains("игристое") || wineName.contains("игристое")) {
             productBuilder.sparkling(true);
         }
 
@@ -198,13 +212,7 @@ public class ParseService {
                         () -> log.warn("Can't parse image url {}", wineName)
                 );
 
-        Optional.ofNullable(
-                document
-                        .getElementsByClass("xf-product-new-about-section__description")
-                        .first()
-        )
-                .map(Element::text)
-                .ifPresentOrElse(
+        descriptionO.ifPresentOrElse(
                         productBuilder::description,
                         () -> log.warn("Can't get description {}", wineName)
                 );
@@ -224,7 +232,7 @@ public class ParseService {
                 .ifPresentOrElse(
                         elements -> {
                             elements.forEach(item -> {
-                                if (item.childrenSize() > 0 && item.child(0).text().contains("Вино")) {
+                                if (item.childrenSize() > 0) {
                                     parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
                                 }
                             });
