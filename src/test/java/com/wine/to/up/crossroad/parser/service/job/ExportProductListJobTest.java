@@ -67,7 +67,6 @@ public class ExportProductListJobTest {
             image = 0,
             grape_sort = 0,
             description = 0,
-            oldPrice = 0,
             rating = 0,
             sparkling = 0;
 
@@ -82,7 +81,6 @@ public class ExportProductListJobTest {
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
             price += isNotZero(product.getNewPrice());
-            oldPrice += isNotZero(product.getOldPrice());
             rating += isNotZero(product.getRating());
             image += isNotNullable(product.getImage());
             grape_sort += isNotNullable(product.getGrapeSort());
@@ -117,7 +115,6 @@ public class ExportProductListJobTest {
         Validate.isTrue(color > 0);
         Validate.isTrue(sugar > 0);
         Validate.isTrue(price > 0);
-        Validate.isTrue(oldPrice == 0);
         Validate.isTrue(rating > 0);
         Validate.isTrue(image > 0);
         Validate.isTrue(grape_sort > 0);
