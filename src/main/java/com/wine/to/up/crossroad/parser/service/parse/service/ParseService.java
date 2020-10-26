@@ -70,7 +70,7 @@ public class ParseService {
         String description = descriptionO.get();
         productBuilder.description(description);
 
-        if (description.contains("игристое") || wineName.contains("игристое")) {
+        if (description.contains("игристое") || wineName.contains("игристое")  || wineName.contains("шампанское")) {
             productBuilder.sparkling(true);
         }
 
