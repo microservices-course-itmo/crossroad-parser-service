@@ -124,8 +124,8 @@ public class ExportProductListJobTest {
         }
     }
 
-    @Test
     @Ignore
+    @Test
     public void shouldTrueBecauseTestRun() {
         exportProductListJob.runJob();
     }
