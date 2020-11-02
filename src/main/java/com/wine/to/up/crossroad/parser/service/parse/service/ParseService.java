@@ -18,6 +18,7 @@ import java.util.*;
  */
 @Slf4j
 public class ParseService {
+    private static final String MANUFACTURER_NAME = "Производитель";
     private static final String BRAND_NAME = "Торговая марка";
     private static final String COUNTRY_NAME = "Страна/регион";
     private static final String REGION_NAME = "Регион";
@@ -57,23 +58,6 @@ public class ParseService {
         String wineName = wineNameO.get();
         productBuilder.name(wineName);
 
-        Optional<String> descriptionO = Optional.ofNullable(
-                document
-                        .getElementsByClass("xf-product-new-about-section__description")
-                        .first()
-        )
-                .map(Element::text);
-
-        if (descriptionO.isEmpty()) {
-            return Optional.empty();
-        }
-        String description = descriptionO.get();
-        productBuilder.description(description);
-
-        if (description.contains("игристое") || wineName.contains("игристое")  || wineName.contains("шампанское")) {
-            productBuilder.sparkling(true);
-        }
-
         Optional<Float> newPriceO = Optional.ofNullable(
                 document
                         .getElementsByClass("js-product__cost")
@@ -98,6 +82,24 @@ public class ParseService {
                 .ifPresentOrElse(
                         productBuilder::oldPrice,
                         () -> log.warn("Can't parse an old price of wine {}", wineName)
+                );
+
+        Optional.ofNullable(
+                document
+                        .getElementsByClass("xf-product-new-about-section__description")
+                        .first()
+        )
+                .map(Element::text)
+                .ifPresentOrElse(description -> {
+                            productBuilder.description(description);
+                            if (description.contains("игристое")
+                                    || wineName.contains("игристое")
+                                    || wineName.contains("шампанское"))
+                            {
+                                productBuilder.sparkling(true);
+                            }
+                        },
+                        () -> log.warn("Can't get description and sparkling {}", wineName)
                 );
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
@@ -130,6 +132,9 @@ public class ParseService {
             String value = valueO.get();
 
             switch (name) {
+                case MANUFACTURER_NAME:
+                    productBuilder.manufacturer(value);
+                    break;
                 case BRAND_NAME:
                     productBuilder.brand(value);
                     break;
@@ -210,11 +215,6 @@ public class ParseService {
                 .ifPresentOrElse(
                         partUrl -> productBuilder.image(baseUrl + partUrl),
                         () -> log.warn("Can't parse image url {}", wineName)
-                );
-
-        descriptionO.ifPresentOrElse(
-                        productBuilder::description,
-                        () -> log.warn("Can't get description {}", wineName)
                 );
 
         return Optional.of(productBuilder.build());
