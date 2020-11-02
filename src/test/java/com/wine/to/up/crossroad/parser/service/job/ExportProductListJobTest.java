@@ -77,7 +77,9 @@ public class ExportProductListJobTest {
             grape_sort = 0,
             description = 0,
             rating = 0,
-            sparkling = 0;
+            sparkling = 0,
+            flavor = 0,
+            taste = 0;
 
 
         for (Product product : wines) {
@@ -96,6 +98,8 @@ public class ExportProductListJobTest {
             grape_sort += isNotNullable(product.getGrapeSort());
             description += isNotNullable(product.getDescription());
             sparkling += product.isSparkling() ? 1 : 0;
+            flavor += isNotNullable(product.getFlavor());
+            taste += isNotNullable(product.getTaste());
         }
 
         log.info(
@@ -113,8 +117,10 @@ public class ExportProductListJobTest {
                         "\nimages: {}" +
                         "\ngrape_sorts: {}" +
                         "\ndescriptions: {}" +
-                        "\nsparkling: {}",
-                name, manufacturer, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling
+                        "\nsparkling: {}" +
+                        "\nflavors: {}" +
+                        "\ntastes: {}",
+                name, manufacturer, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling, flavor, taste
         );
 
         Validate.isTrue(name > 0);
@@ -131,6 +137,8 @@ public class ExportProductListJobTest {
         Validate.isTrue(image > 0);
         Validate.isTrue(grape_sort > 0);
         Validate.isTrue(description > 0);
+        Validate.isTrue(flavor > 0);
+        Validate.isTrue(taste > 0);
         if (parseSparkling) {
             Validate.isTrue(sparkling > 0);
         }

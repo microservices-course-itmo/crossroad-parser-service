@@ -28,6 +28,8 @@ public class ParseService {
     private static final String SUGAR_NAME = "Сахaр";
     private static final String YEAR = "Урожай";
     private static final String GRAPE_SORT_NAME = "Сорт винограда";
+    private static final String FLAVOR = "Аромат";
+    private static final String TASTE = "Вкусовая гамма";
 
     private final String baseUrl;
 
@@ -177,6 +179,12 @@ public class ParseService {
                     } else {
                         log.warn("Can't parse a year {}", value);
                     }
+                    break;
+                case FLAVOR:
+                    productBuilder.flavor(value);
+                    break;
+                case TASTE:
+                    productBuilder.taste(value);
                     break;
             }
         });
