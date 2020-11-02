@@ -94,9 +94,10 @@ public class ParseService {
                 .map(Element::text)
                 .ifPresentOrElse(description -> {
                             productBuilder.description(description);
-                            if (description.contains("игристое")
-                                    || wineName.contains("игристое")
-                                    || wineName.contains("шампанское"))
+                            if (description.toLowerCase().contains("игрист")
+                                    || description.toLowerCase().contains("шампанск")
+                                    || wineName.toLowerCase().contains("игрист")
+                                    || wineName.toLowerCase().contains("шампанск"))
                             {
                                 productBuilder.sparkling(true);
                             }
