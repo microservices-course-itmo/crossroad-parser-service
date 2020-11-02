@@ -3,13 +3,11 @@ package com.wine.to.up.crossroad.parser.service;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.retry.annotation.EnableRetry;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
 @ComponentScan("com.wine.to.up")
 @EnableSwagger2
-@EnableRetry
 public class ServiceApplication {
 
     public static void main(String[] args) {
