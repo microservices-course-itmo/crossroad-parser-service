@@ -80,7 +80,7 @@ public class ExportProductListJob {
         metricsCollector.productListJob(new Date().getTime() - startTime);
     }
 
-    private ParserApi.Wine getProtobufProduct(Product wine) {
+    public ParserApi.Wine getProtobufProduct(Product wine) {
         ParserApi.Wine.Sugar sugar = convertSugar(wine.getSugar());
         ParserApi.Wine.Color color = convertColor(wine.getColor());
         var builder = ParserApi.Wine.newBuilder();
@@ -103,6 +103,7 @@ public class ExportProductListJob {
             builder.setSugar(sugar);
         }
         builder.setOldPrice(wine.getOldPrice());
+        builder.setNewPrice(wine.getNewPrice());
         if (wine.getImage() != null) {
             builder.setImage(wine.getImage());
         }
