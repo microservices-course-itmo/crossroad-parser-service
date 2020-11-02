@@ -28,7 +28,7 @@ public class RequestsService {
     private final int timeout;
     private final String region;
 
-    private final static String HEADER_REGION = "region";
+    private static final String HEADER_REGION = "region";
 
     public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
         this.baseUrl = baseUrl;
@@ -49,7 +49,7 @@ public class RequestsService {
                 .build();
 
         URIBuilder builder = new URIBuilder(url);
-        builder.setParameter("region", region);
+        builder.setParameter(HEADER_REGION, region);
         HttpGet request = new HttpGet(builder.build());
 
         request.setHeader(HttpHeaders.USER_AGENT, userAgent);

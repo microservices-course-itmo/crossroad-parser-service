@@ -7,11 +7,7 @@ import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
-import io.micrometer.core.annotation.Timed;
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Timer;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.Time;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -54,7 +50,7 @@ public class ExportProductListJob {
      */
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
-        long startTime = new Date().getTime();
+        double startTime = new Date().getTime();
         log.info("Start run job method at {}", startTime);
 
         try {

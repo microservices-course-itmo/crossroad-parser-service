@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProductService {
 
-    private static final String SHOP_LINK = "perekrestok.ru";
-
-
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
@@ -33,7 +30,7 @@ public class ProductService {
                           RequestsService requestsService,
                           CrossroadParserServiceMetricsCollector metricsCollector) {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
-        this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");;
+        this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
     }
 
@@ -71,7 +68,7 @@ public class ProductService {
                         .getHtml(sparkling, i)
                         .map(parseService::parseUrlsCatalogPage)
                         .orElse(Collections.emptyList());
-                if (winesUrlFromPage.size() == 0) {
+                if (winesUrlFromPage.isEmpty()) {
                     log.warn("Page {} parsed, but no urls found", i);
                 }
                 winesUrl.addAll(winesUrlFromPage);

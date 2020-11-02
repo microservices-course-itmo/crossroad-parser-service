@@ -139,17 +139,9 @@ public class ExportProductListJobTest {
         Validate.isTrue(image > 0);
         Validate.isTrue(grape_sort > 0);
         Validate.isTrue(description > 0);
-        Validate.isTrue(flavor > 0);
-        Validate.isTrue(taste > 0);
         if (parseSparkling) {
             Validate.isTrue(sparkling > 0);
         }
-    }
-
-    @Ignore
-    @Test
-    public void shouldTrueBecauseTestRun() {
-        exportProductListJob.runJob();
     }
 
     @Test
