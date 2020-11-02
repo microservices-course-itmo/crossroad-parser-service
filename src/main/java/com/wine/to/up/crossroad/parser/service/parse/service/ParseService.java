@@ -37,6 +37,93 @@ public class ParseService {
         this.baseUrl = baseUrl;
     }
 
+    private void setProductProperty(Product.ProductBuilder productBuilder, String name, String value) {
+        switch (name) {
+            case MANUFACTURER_NAME:
+                productBuilder.manufacturer(value);
+                break;
+            case BRAND_NAME:
+                productBuilder.brand(value);
+                break;
+            case COUNTRY_NAME:
+                productBuilder.country(value);
+                break;
+            case REGION_NAME:
+                productBuilder.region(Arrays.asList(value.split(", ")));
+                break;
+            case CAPACITY_NAME:
+                String capacity = value.replace(" л", "");
+                if (NumberUtils.isNumber(capacity)) {
+                    productBuilder.capacity(Float.parseFloat(capacity));
+                } else {
+                    log.warn("Can't parse capacity: {} of wine {}", capacity, wineName);
+                }
+                break;
+            case STRENGTH_NAME:
+                if (NumberUtils.isNumber(value)) {
+                    productBuilder.strength(
+                            Float.parseFloat(value)
+                    );
+                } else {
+                    log.warn("Can't parse strength: {} of wine {}", value, wineName);
+                }
+                break;
+            case COLOR_NAME:
+                productBuilder.color(value);
+                break;
+            case SUGAR_NAME:
+                productBuilder.sugar(value);
+                break;
+            case GRAPE_SORT_NAME:
+                productBuilder.grapeSort(Arrays.asList(value.split(", ")));
+                break;
+            case YEAR:
+                String[] year = value.split(" ");
+                if (year.length > 0 && NumberUtils.isNumber(year[0])) {
+                    productBuilder.year(Integer.parseInt(year[0]));
+                } else {
+                    log.warn("Can't parse a year {}", value);
+                }
+                break;
+            case FLAVOR:
+                productBuilder.flavor(value);
+                break;
+            case TASTE:
+                productBuilder.taste(value);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void processProductProperty(String wineName, Product.ProductBuilder productBuilder, Element property) {
+        Optional<String> name = Optional.ofNullable(
+                property
+                        .getElementsByClass("xf-product-new-about-section__property__name")
+                        .first()
+        )
+                .map(Element::text);
+
+        Optional<String> value = Optional.ofNullable(
+                property
+                        .getElementsByClass("xf-product-new-about-section__property__value")
+                        .first()
+        )
+                .map(Element::text);
+
+        if (name.isEmpty() || value.isEmpty()) {
+            log.warn(
+                    "Can't get one property of wine {}, name present: {}, value present: {}",
+                    wineName,
+                    name.isPresent(),
+                    value.isPresent()
+            );
+            return;
+        }
+
+        setProductProperty(productBuilder, name.get(), value.get());
+    }
+
     /**
      * Парсинг страницы вина.
      *
@@ -106,89 +193,7 @@ public class ParseService {
                 );
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
-        properties.forEach(property -> {
-            Optional<String> nameO = Optional.ofNullable(
-                    property
-                            .getElementsByClass("xf-product-new-about-section__property__name")
-                            .first()
-            )
-                    .map(Element::text);
-
-            Optional<String> valueO = Optional.ofNullable(
-                    property
-                            .getElementsByClass("xf-product-new-about-section__property__value")
-                            .first()
-            )
-                    .map(Element::text);
-
-            if (nameO.isEmpty() || valueO.isEmpty()) {
-                log.warn(
-                        "Can't get one property of wine {}, name present: {}, value present: {}",
-                        wineName,
-                        nameO.isPresent(),
-                        valueO.isPresent()
-                );
-                return;
-            }
-
-            String name = nameO.get();
-            String value = valueO.get();
-
-            switch (name) {
-                case MANUFACTURER_NAME:
-                    productBuilder.manufacturer(value);
-                    break;
-                case BRAND_NAME:
-                    productBuilder.brand(value);
-                    break;
-                case COUNTRY_NAME:
-                    productBuilder.country(value);
-                    break;
-                case REGION_NAME:
-                    productBuilder.region(Arrays.asList(value.split(", ")));
-                    break;
-                case CAPACITY_NAME:
-                    String capacity = value.replace(" л", "");
-                    if (NumberUtils.isNumber(capacity)) {
-                        productBuilder.capacity(Float.parseFloat(capacity));
-                    } else {
-                        log.warn("Can't parse capacity: {} of wine {}", capacity, wineName);
-                    }
-                    break;
-                case STRENGTH_NAME:
-                    if (NumberUtils.isNumber(value)) {
-                        productBuilder.strength(
-                                Float.parseFloat(value)
-                        );
-                    } else {
-                        log.warn("Can't parse strength: {} of wine {}", value, wineName);
-                    }
-                    break;
-                case COLOR_NAME:
-                    productBuilder.color(value);
-                    break;
-                case SUGAR_NAME:
-                    productBuilder.sugar(value);
-                    break;
-                case GRAPE_SORT_NAME:
-                    productBuilder.grapeSort(Arrays.asList(value.split(", ")));
-                    break;
-                case YEAR:
-                    String[] year = value.split(" ");
-                    if (year.length > 0 && NumberUtils.isNumber(year[0])) {
-                        productBuilder.year(Integer.parseInt(year[0]));
-                    } else {
-                        log.warn("Can't parse a year {}", value);
-                    }
-                    break;
-                case FLAVOR:
-                    productBuilder.flavor(value);
-                    break;
-                case TASTE:
-                    productBuilder.taste(value);
-                    break;
-            }
-        });
+        properties.forEach(property -> processProductProperty(wineName, productBuilder, property));
 
         Optional.ofNullable(
                 document

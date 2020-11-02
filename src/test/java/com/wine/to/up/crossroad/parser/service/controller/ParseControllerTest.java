@@ -112,7 +112,7 @@ public class ParseControllerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         parseController.parseSiteCsv(response);
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertEquals(response.getCharacterEncoding(), "UTF-8");
+        Assert.assertEquals("UTF-8", response.getCharacterEncoding());
         Assert.assertEquals(response.getStatus(), HttpStatus.OK.value());
     }
 
@@ -121,7 +121,7 @@ public class ParseControllerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         parseControllerMock.parseSiteCsv(response);
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertEquals(response.getCharacterEncoding(), "UTF-8");
+        Assert.assertEquals("UTF-8", response.getCharacterEncoding());
         Assert.assertEquals(response.getStatus(), HttpStatus.OK.value());
     }
 }

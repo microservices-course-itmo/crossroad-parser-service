@@ -15,7 +15,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Slf4j
@@ -37,7 +39,7 @@ public class RequestsService {
         this.region = region;
     }
 
-    private String getByUrl(String url) throws Exception {
+    private String getByUrl(String url) throws URISyntaxException, IOException {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setSocketTimeout(timeout)
@@ -59,9 +61,15 @@ public class RequestsService {
                 response.getEntity().getContent()));
         StringBuilder result = new StringBuilder();
         String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+
+        try {
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+        } finally {
+            rd.close();
         }
+
         return result.toString();
     }
 
