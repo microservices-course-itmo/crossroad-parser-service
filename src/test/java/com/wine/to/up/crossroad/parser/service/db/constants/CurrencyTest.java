@@ -17,4 +17,14 @@ public class CurrencyTest {
     public void currencyUnknownTest() {
         Assert.assertEquals(Currency.UNKNOWN, Currency.resolve("EUR"));
     }
+
+    @Test
+    public void getIdTest() {
+        Assert.assertEquals(Currency.RUB.getId(), 1);
+    }
+
+    @Test
+    public void getCodeTest() {
+        Assert.assertEquals(Currency.RUB.getCode(), "RUB");
+    }
 }
