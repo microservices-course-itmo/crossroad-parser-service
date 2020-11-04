@@ -15,7 +15,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URISyntaxException;
 import java.util.Optional;
 
 @Slf4j
@@ -28,7 +30,7 @@ public class RequestsService {
     private final int timeout;
     private final String region;
 
-    private final static String HEADER_REGION = "region";
+    private static final String HEADER_REGION = "region";
 
     public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
         this.baseUrl = baseUrl;
@@ -37,7 +39,7 @@ public class RequestsService {
         this.region = region;
     }
 
-    private String getByUrl(String url) throws Exception {
+    private String getByUrl(String url) throws URISyntaxException, IOException {
         RequestConfig config = RequestConfig.custom()
                 .setConnectTimeout(timeout)
                 .setSocketTimeout(timeout)
@@ -49,7 +51,7 @@ public class RequestsService {
                 .build();
 
         URIBuilder builder = new URIBuilder(url);
-        builder.setParameter("region", region);
+        builder.setParameter(HEADER_REGION, region);
         HttpGet request = new HttpGet(builder.build());
 
         request.setHeader(HttpHeaders.USER_AGENT, userAgent);
@@ -59,9 +61,15 @@ public class RequestsService {
                 response.getEntity().getContent()));
         StringBuilder result = new StringBuilder();
         String line = "";
-        while ((line = rd.readLine()) != null) {
-            result.append(line);
+
+        try {
+            while ((line = rd.readLine()) != null) {
+                result.append(line);
+            }
+        } finally {
+            rd.close();
         }
+
         return result.toString();
     }
 

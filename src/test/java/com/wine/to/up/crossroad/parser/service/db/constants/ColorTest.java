@@ -17,16 +17,16 @@ public class ColorTest {
 
     @Test
     public void getIdTest() {
-        Assert.assertEquals(Color.RED.getId(), 0);
+        Assert.assertEquals(0, Color.RED.getId());
     }
 
     @Test
-    public void getColorTest() {
-        Assert.assertEquals(Color.RED.getColor(), "Красное");
+    public void getStringValueTest() {
+        Assert.assertEquals("Красное", Color.RED.getStringValue());
     }
 
     @Test
     public void getProductColorTest() {
-        Assert.assertEquals(Color.RED.getProductColor(), ParserApi.Wine.Color.RED);
+        Assert.assertEquals(ParserApi.Wine.Color.RED, Color.RED.getProductColor());
     }
 }

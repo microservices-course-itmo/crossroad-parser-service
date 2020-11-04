@@ -20,11 +20,11 @@ public class CurrencyTest {
 
     @Test
     public void getIdTest() {
-        Assert.assertEquals(Currency.RUB.getId(), 1);
+        Assert.assertEquals(1, Currency.RUB.getId());
     }
 
     @Test
     public void getCodeTest() {
-        Assert.assertEquals(Currency.RUB.getCode(), "RUB");
+        Assert.assertEquals("RUB", Currency.RUB.getCode());
     }
 }

@@ -16,16 +16,16 @@ public enum Color {
 
     private final int id;
     private final ParserApi.Wine.Color productColor;
-    private final String color;
+    private final String stringValue;
 
     private static final Map<String, Color> R = Arrays.stream(
-            Color.values()).collect(Collectors.toMap(Color::getColor, Function.identity())
+            Color.values()).collect(Collectors.toMap(Color::getStringValue, Function.identity())
     );
 
-    Color(int id, ParserApi.Wine.Color productColor, String color) {
+    Color(int id, ParserApi.Wine.Color productColor, String stringValue) {
         this.id = id;
         this.productColor = productColor;
-        this.color = color;
+        this.stringValue = stringValue;
     }
 
     public static ParserApi.Wine.Color resolve(String color) {
