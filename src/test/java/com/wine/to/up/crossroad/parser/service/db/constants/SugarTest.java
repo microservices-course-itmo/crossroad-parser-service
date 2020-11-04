@@ -7,7 +7,7 @@ import org.junit.Test;
 public class SugarTest {
     @Test
     public void sugarDryTest() {
-        Assert.assertEquals(ParserApi.Wine.Sugar.DRY, WineSugar.resolve("Сухое"));
+        Assert.assertEquals(ParserApi.Wine.Sugar.DRY, Sugar.resolve("Сухое"));
     }
 
     @Test
@@ -17,16 +17,16 @@ public class SugarTest {
 
     @Test
     public void getIdTest() {
-        Assert.assertEquals(0, WineSugar.DRY.getId());
+        Assert.assertEquals(0, Sugar.DRY.getId());
     }
 
     @Test
-    public void getSugarTest() {
-        Assert.assertEquals("Сухое", WineSugar.DRY.getSugar());
+    public void getStringValueTest() {
+        Assert.assertEquals("Сухое", Sugar.DRY.getStringValue());
     }
 
     @Test
     public void getProductSugarTest() {
-        Assert.assertEquals(ParserApi.Wine.Sugar.DRY, WineSugar.DRY.getProductSugar());
+        Assert.assertEquals(ParserApi.Wine.Sugar.DRY, Sugar.DRY.getProductSugar());
     }
 }

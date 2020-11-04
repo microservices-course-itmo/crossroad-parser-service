@@ -18,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,8 +25,6 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -86,12 +83,7 @@ public class ParseControllerTest {
         return Optional.of(products);
     }
 
-    @Test
-    public void startJobByParseControllerTest() {
-        parseControllerMock.parse();
-    }
-
-    @Ignore
+    @Ignore("Integration test")
     @Test
     public void getProductsByParseControllerTest() {
         List<Product> parseResult = parseController.parseSite();
@@ -106,7 +98,7 @@ public class ParseControllerTest {
         Assert.assertTrue(parseResult.size() > 0);
     }
 
-    @Ignore
+    @Ignore("Integration test")
     @Test
     public void getProductInCsvFormatByParseControllerTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();

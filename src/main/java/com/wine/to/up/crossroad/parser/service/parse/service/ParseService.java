@@ -37,7 +37,7 @@ public class ParseService {
         this.baseUrl = baseUrl;
     }
 
-    private void setProductProperty(Product.ProductBuilder productBuilder, String name, String value) {
+    private void setProductProperty(String wineName, Product.ProductBuilder productBuilder, String name, String value) {
         switch (name) {
             case MANUFACTURER_NAME:
                 productBuilder.manufacturer(value);
@@ -121,7 +121,7 @@ public class ParseService {
             return;
         }
 
-        setProductProperty(productBuilder, name.get(), value.get());
+        setProductProperty(wineName, productBuilder, name.get(), value.get());
     }
 
     /**

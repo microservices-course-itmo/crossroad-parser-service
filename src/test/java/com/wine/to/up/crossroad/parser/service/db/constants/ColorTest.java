@@ -21,8 +21,8 @@ public class ColorTest {
     }
 
     @Test
-    public void getColorTest() {
-        Assert.assertEquals("Красное", Color.RED.getColor());
+    public void getStringValueTest() {
+        Assert.assertEquals("Красное", Color.RED.getStringValue());
     }
 
     @Test
