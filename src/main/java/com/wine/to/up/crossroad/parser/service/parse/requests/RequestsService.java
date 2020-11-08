@@ -7,7 +7,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
-
+import org.springframework.retry.annotation.Retryable;
 import java.util.Optional;
 
 @Slf4j
@@ -29,6 +29,17 @@ public class RequestsService {
         this.region = region;
     }
 
+    @Retryable(value = Exception.class) // retries up to three times
+    private String getByUrl(String url) throws Exception {
+        return Jsoup.connect(url)
+                .userAgent(userAgent)
+                .timeout(timeout)
+                .data("region", region)
+                .ignoreContentType(true)
+                .execute()
+                .body();
+    }
+
     public Optional<CatalogResponsePojo> getJson(int page) {
         return getJson(false, page);
     }
@@ -39,12 +50,7 @@ public class RequestsService {
                 : "/catalog/alkogol/vino";
         String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
         try {
-            String json = Jsoup.connect(url)
-                    .userAgent(userAgent)
-                    .timeout(timeout)
-                    .data("region", region)
-                    .ignoreContentType(true)
-                    .execute().body();
+            String json = getByUrl(url);
             CatalogResponsePojo result = new ObjectMapper().readValue(json, CatalogResponsePojo.class);
             return Optional.of(result);
         } catch (Exception e) {
@@ -60,12 +66,7 @@ public class RequestsService {
 
     public Optional<String> getItemHtml(String url) {
         try {
-            String result = Jsoup.connect(baseUrl + url)
-                    .userAgent(userAgent)
-                    .timeout(timeout)
-                    .data("region", region)
-                    .ignoreContentType(true)
-                    .execute().body();
+            String result = getByUrl(baseUrl + url);
             return Optional.of(result);
         } catch (Exception e) {
             log.error("Cannot get json response: {} {}", baseUrl + url, e);

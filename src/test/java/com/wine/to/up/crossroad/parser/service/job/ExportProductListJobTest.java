@@ -38,8 +38,16 @@ public class ExportProductListJobTest {
     private ParseService parseService;
 
     @Test
-    public void parseFirstPage() {
-        boolean parseSparkling = true;
+    public void parseFirstPageSparkling() {
+        parseFirstPage(true);
+    }
+
+    @Test
+    public void parseFirstPageNonSparkling() {
+        parseFirstPage(false);
+    }
+
+    private void parseFirstPage(boolean parseSparkling) {
         List<String> winesUrlFromPage = requestsService
                 .getHtml(parseSparkling, 1)
                 .map(parseService::parseUrlsCatalogPage)
@@ -56,6 +64,7 @@ public class ExportProductListJobTest {
                 .collect(Collectors.toList());
 
         int name = 0,
+            manufacturer = 0,
             brand = 0,
             country = 0,
             region = 0,
@@ -67,13 +76,13 @@ public class ExportProductListJobTest {
             image = 0,
             grape_sort = 0,
             description = 0,
-            oldPrice = 0,
             rating = 0,
             sparkling = 0;
 
 
         for (Product product : wines) {
             name += isNotNullable(product.getName());
+            manufacturer += isNotNullable(product.getManufacturer());
             brand += isNotNullable(product.getBrand());
             country += isNotNullable(product.getCountry());
             region += isNotNullable(product.getRegion());
@@ -82,7 +91,6 @@ public class ExportProductListJobTest {
             color += isNotNullable(product.getColor());
             sugar += isNotNullable(product.getSugar());
             price += isNotZero(product.getNewPrice());
-            oldPrice += isNotZero(product.getOldPrice());
             rating += isNotZero(product.getRating());
             image += isNotNullable(product.getImage());
             grape_sort += isNotNullable(product.getGrapeSort());
@@ -93,6 +101,7 @@ public class ExportProductListJobTest {
         log.info(
                 "Successfully parsed:" +
                         "\nnames: {}" +
+                        "\nmanufacturers: {}" +
                         "\nbrands: {}" +
                         "\ncountries: {}" +
                         "\nregions: {}" +
@@ -105,10 +114,11 @@ public class ExportProductListJobTest {
                         "\ngrape_sorts: {}" +
                         "\ndescriptions: {}" +
                         "\nsparkling: {}",
-                name, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling
+                name, manufacturer, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling
         );
 
         Validate.isTrue(name > 0);
+        Validate.isTrue(manufacturer > 0);
         Validate.isTrue(brand > 0);
         Validate.isTrue(country > 0);
         Validate.isTrue(region > 0);
@@ -117,7 +127,6 @@ public class ExportProductListJobTest {
         Validate.isTrue(color > 0);
         Validate.isTrue(sugar > 0);
         Validate.isTrue(price > 0);
-        Validate.isTrue(oldPrice == 0);
         Validate.isTrue(rating > 0);
         Validate.isTrue(image > 0);
         Validate.isTrue(grape_sort > 0);
