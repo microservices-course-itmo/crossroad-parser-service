@@ -17,10 +17,15 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollector {
+    private static final String SERVICE_NAME = "crossroad_parser_service";
     private static final String PARSED_WINES_COUNT = "parsed_wines_count";
     private static final String PARSE_SITE = "parse_site";
     private static final String PARSE_SITE_CSV = "parse_site_csv";
     private static final String PRODUCT_LIST_JOB = "product_list_job";
+
+    public CrossroadParserServiceMetricsCollector() {
+        super(SERVICE_NAME);
+    }
 
     private static final Gauge parsedWinesGauge = Gauge.build()
             .name(PARSED_WINES_COUNT)
