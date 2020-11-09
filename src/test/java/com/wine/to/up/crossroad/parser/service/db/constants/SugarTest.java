@@ -22,7 +22,7 @@ public class SugarTest {
 
     @Test
     public void getStringValueTest() {
-        Assert.assertEquals("Сухое", Sugar.DRY.getStringValue());
+        Assert.assertEquals("Сухое", Sugar.DRY.getName());
     }
 
     @Test
