@@ -17,16 +17,16 @@ public enum Sugar {
 
     private final int id;
     private final ParserApi.Wine.Sugar productSugar;
-    private final String stringValue;
+    private final String name;
 
     private static final Map<String, Sugar> R = Arrays.stream(
-            Sugar.values()).collect(Collectors.toMap(Sugar::getStringValue, Function.identity())
+            Sugar.values()).collect(Collectors.toMap(Sugar::getName, Function.identity())
     );
 
-    Sugar(int id, ParserApi.Wine.Sugar productSugar, String stringValue) {
+    Sugar(int id, ParserApi.Wine.Sugar productSugar, String name) {
         this.id = id;
         this.productSugar = productSugar;
-        this.stringValue = stringValue;
+        this.name = name;
     }
 
     public static ParserApi.Wine.Sugar resolve(String sugar) {

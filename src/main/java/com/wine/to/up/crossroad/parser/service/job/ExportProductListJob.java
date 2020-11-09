@@ -50,7 +50,7 @@ public class ExportProductListJob {
      */
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
-        double startTime = new Date().getTime();
+        long startTime = new Date().getTime();
         log.info("Start run job method at {}", startTime);
 
         try {

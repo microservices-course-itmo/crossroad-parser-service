@@ -52,18 +52,18 @@ public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollect
         parsedWinesGauge.set(count);
     }
 
-    public void parseSite(double time) {
-        Metrics.timer(PARSE_SITE).record((long)time, TimeUnit.MILLISECONDS);
+    public void parseSite(long time) {
+        Metrics.timer(PARSE_SITE).record(time, TimeUnit.MILLISECONDS);
         parseSiteSummary.observe(time);
     }
 
-    public void parseSiteCsv(double time) {
-        Metrics.timer(PARSE_SITE_CSV).record((long)time, TimeUnit.MILLISECONDS);
+    public void parseSiteCsv(long time) {
+        Metrics.timer(PARSE_SITE_CSV).record(time, TimeUnit.MILLISECONDS);
         parseSiteCsvSummary.observe(time);
     }
 
-    public void productListJob(double time) {
-        Metrics.timer(PRODUCT_LIST_JOB).record((long)time, TimeUnit.MILLISECONDS);
+    public void productListJob(long time) {
+        Metrics.timer(PRODUCT_LIST_JOB).record(time, TimeUnit.MILLISECONDS);
         productListJobSummary.observe(time);
     }
 }

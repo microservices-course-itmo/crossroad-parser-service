@@ -57,17 +57,15 @@ public class RequestsService {
         request.setHeader(HttpHeaders.USER_AGENT, userAgent);
         HttpResponse response = client.execute(request);
 
-        BufferedReader rd = new BufferedReader(new InputStreamReader(
-                response.getEntity().getContent()));
         StringBuilder result = new StringBuilder();
         String line = "";
 
-        try {
+        InputStreamReader sr = new InputStreamReader(response.getEntity().getContent());
+
+        try (BufferedReader rd = new BufferedReader(sr)) {
             while ((line = rd.readLine()) != null) {
                 result.append(line);
             }
-        } finally {
-            rd.close();
         }
 
         return result.toString();

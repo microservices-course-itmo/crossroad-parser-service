@@ -48,7 +48,7 @@ public class ParseController {
     @ApiOperation(value = "Парсинг сайта по запросу пользователя",
             notes = "Возвращает результат парсинга сайта в формате JSON")
     public List<Product> parseSite() {
-        double startTime = new Date().getTime();
+        long startTime = new Date().getTime();
         Optional<List<Product>> wines = productService.getParsedProductList();
         metricsCollector.parseSite(new Date().getTime() - startTime);
         return wines.orElseGet(ArrayList::new);
@@ -58,7 +58,7 @@ public class ParseController {
     @ApiOperation(value = "Парсинг сайта по запросу пользователя",
             notes = "Возвращает результат парсинга сайта в формате CSV")
     public void parseSiteCsv(HttpServletResponse response) {
-        double startTime = new Date().getTime();
+        long startTime = new Date().getTime();
         response.setCharacterEncoding("UTF-8");
         Optional<List<Product>> wines = productService.getParsedProductList();
         if (wines.isPresent()) {

@@ -55,7 +55,7 @@ public class ParseControllerTest {
             System.err.println("Can't parse product list to csv" + ex);
         }
         CrossroadParserServiceMetricsCollector metricsCollector = mock(CrossroadParserServiceMetricsCollector.class);
-        doNothing().when(metricsCollector).parseSite(isA(Double.class));
+        doNothing().when(metricsCollector).parseSite(isA(Long.class));
         parseControllerMock = new ParseController(job, productService, metricsCollector);
     }
 
