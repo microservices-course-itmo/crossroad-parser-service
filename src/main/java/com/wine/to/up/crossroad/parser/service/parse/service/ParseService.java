@@ -49,7 +49,7 @@ public class ParseService {
                 productBuilder.country(value);
                 break;
             case REGION_NAME:
-                productBuilder.region(Arrays.asList(value.split(", ")));
+                productBuilder.region(Arrays.asList(value.split(",  ")));
                 break;
             case CAPACITY_NAME:
                 String capacity = value.replace(" л", "");
@@ -75,7 +75,7 @@ public class ParseService {
                 productBuilder.sugar(value);
                 break;
             case GRAPE_SORT_NAME:
-                productBuilder.grapeSort(Arrays.asList(value.split(", ")));
+                productBuilder.grapeSort(Arrays.asList(value.split(",  ")));
                 break;
             case YEAR:
                 String[] year = value.split(" ");
