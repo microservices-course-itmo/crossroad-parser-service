@@ -17,10 +17,15 @@ import java.util.concurrent.TimeUnit;
  */
 @Component
 public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollector {
+    private static final String SERVICE_NAME = "crossroad_parser_service";
     private static final String PARSED_WINES_COUNT = "parsed_wines_count";
     private static final String PARSE_SITE = "parse_site";
     private static final String PARSE_SITE_CSV = "parse_site_csv";
     private static final String PRODUCT_LIST_JOB = "product_list_job";
+
+    public CrossroadParserServiceMetricsCollector() {
+        super(SERVICE_NAME);
+    }
 
     private static final Gauge parsedWinesGauge = Gauge.build()
             .name(PARSED_WINES_COUNT)
@@ -47,18 +52,18 @@ public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollect
         parsedWinesGauge.set(count);
     }
 
-    public void parseSite(double time) {
-        Metrics.timer(PARSE_SITE).record((long)time, TimeUnit.MILLISECONDS);
+    public void parseSite(long time) {
+        Metrics.timer(PARSE_SITE).record(time, TimeUnit.MILLISECONDS);
         parseSiteSummary.observe(time);
     }
 
-    public void parseSiteCsv(double time) {
-        Metrics.timer(PARSE_SITE_CSV).record((long)time, TimeUnit.MILLISECONDS);
+    public void parseSiteCsv(long time) {
+        Metrics.timer(PARSE_SITE_CSV).record(time, TimeUnit.MILLISECONDS);
         parseSiteCsvSummary.observe(time);
     }
 
-    public void productListJob(double time) {
-        Metrics.timer(PRODUCT_LIST_JOB).record((long)time, TimeUnit.MILLISECONDS);
+    public void productListJob(long time) {
+        Metrics.timer(PRODUCT_LIST_JOB).record(time, TimeUnit.MILLISECONDS);
         productListJobSummary.observe(time);
     }
 }

@@ -4,7 +4,6 @@ import com.wine.to.up.crossroad.parser.service.components.CrossroadParserService
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
-import io.micrometer.core.annotation.Timed;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
@@ -13,7 +12,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * <p>
@@ -46,9 +49,7 @@ public class ParseController {
             notes = "Возвращает результат парсинга сайта в формате JSON")
     public List<Product> parseSite() {
         long startTime = new Date().getTime();
-
         Optional<List<Product>> wines = productService.getParsedProductList();
-
         metricsCollector.parseSite(new Date().getTime() - startTime);
         return wines.orElseGet(ArrayList::new);
     }
@@ -58,19 +59,15 @@ public class ParseController {
             notes = "Возвращает результат парсинга сайта в формате CSV")
     public void parseSiteCsv(HttpServletResponse response) {
         long startTime = new Date().getTime();
-
         response.setCharacterEncoding("UTF-8");
-
         Optional<List<Product>> wines = productService.getParsedProductList();
-
         if (wines.isPresent()) {
             try {
                 productService.writeParsedProductListCsv(response.getWriter(), wines.get());
             } catch (Exception ex) {
-                log.error("Failed to write response {}", ex);
+                log.error("Failed to write response", ex);
             }
         }
-
         metricsCollector.parseSiteCsv(new Date().getTime() - startTime);
     }
 

@@ -14,4 +14,19 @@ public class ColorTest {
     public void colorWhiteTest() {
         Assert.assertEquals(ParserApi.Wine.Color.WHITE, Color.resolve("Белое"));
     }
+
+    @Test
+    public void getIdTest() {
+        Assert.assertEquals(0, Color.RED.getId());
+    }
+
+    @Test
+    public void getStringValueTest() {
+        Assert.assertEquals("Красное", Color.RED.getName());
+    }
+
+    @Test
+    public void getProductColorTest() {
+        Assert.assertEquals(ParserApi.Wine.Color.RED, Color.RED.getProductColor());
+    }
 }

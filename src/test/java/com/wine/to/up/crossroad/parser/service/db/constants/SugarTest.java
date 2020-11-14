@@ -14,4 +14,19 @@ public class SugarTest {
     public void currencySweetTest() {
         Assert.assertEquals(ParserApi.Wine.Sugar.SWEET, Sugar.resolve("Сладкое"));
     }
+
+    @Test
+    public void getIdTest() {
+        Assert.assertEquals(0, Sugar.DRY.getId());
+    }
+
+    @Test
+    public void getStringValueTest() {
+        Assert.assertEquals("Сухое", Sugar.DRY.getName());
+    }
+
+    @Test
+    public void getProductSugarTest() {
+        Assert.assertEquals(ParserApi.Wine.Sugar.DRY, Sugar.DRY.getProductSugar());
+    }
 }

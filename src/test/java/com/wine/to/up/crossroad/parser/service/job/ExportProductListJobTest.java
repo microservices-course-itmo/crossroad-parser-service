@@ -1,8 +1,10 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
+import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
+import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
@@ -77,7 +79,9 @@ public class ExportProductListJobTest {
             grape_sort = 0,
             description = 0,
             rating = 0,
-            sparkling = 0;
+            sparkling = 0,
+            flavor = 0,
+            taste = 0;
 
 
         for (Product product : wines) {
@@ -96,6 +100,8 @@ public class ExportProductListJobTest {
             grape_sort += isNotNullable(product.getGrapeSort());
             description += isNotNullable(product.getDescription());
             sparkling += product.isSparkling() ? 1 : 0;
+            flavor += isNotNullable(product.getFlavor());
+            taste += isNotNullable(product.getTaste());
         }
 
         log.info(
@@ -113,8 +119,10 @@ public class ExportProductListJobTest {
                         "\nimages: {}" +
                         "\ngrape_sorts: {}" +
                         "\ndescriptions: {}" +
-                        "\nsparkling: {}",
-                name, manufacturer, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling
+                        "\nsparkling: {}" +
+                        "\nflavors: {}" +
+                        "\ntastes: {}",
+                name, manufacturer, brand, country, region, capacity, strength, color, sugar, price, image, grape_sort, description, sparkling, flavor, taste
         );
 
         Validate.isTrue(name > 0);
@@ -137,9 +145,57 @@ public class ExportProductListJobTest {
     }
 
     @Test
-    @Ignore
-    public void shouldTrueBecauseTestRun() {
-        exportProductListJob.runJob();
+    public void getProtobufProductTest() {
+        Product product = getTestProduct();
+        ParserApi.Wine wine = exportProductListJob.getProtobufProduct(product);
+
+        Assert.assertEquals("Вино Peregrino Vinedo красное полусладкое 11% 0.75л", wine.getName());
+        Assert.assertEquals(0.f, wine.getOldPrice(), 0.1);
+        Assert.assertEquals(319.f, wine.getNewPrice(), 0.1);
+        Assert.assertEquals("https://www.vprok.ru/product/peregrino-vinedo-vino-peregr-vin-kr-psl-0-75l--379462", wine.getLink());
+        Assert.assertEquals("https://www.perekrestok.ru/src/product.file/full/image/57/60/96057.jpeg", wine.getImage());
+        Assert.assertEquals("", wine.getManufacturer());
+        Assert.assertEquals("Peregrino Vinedo", wine.getBrand());
+        Assert.assertEquals("Spain", wine.getCountry());
+        Assert.assertEquals(0, wine.getRegionCount());
+        Assert.assertEquals(0.75f, wine.getCapacity(), 0.01);
+        Assert.assertEquals(11.f, wine.getStrength(), 0.1);
+        Assert.assertEquals(ParserApi.Wine.Color.RED, wine.getColor());
+        Assert.assertEquals(ParserApi.Wine.Sugar.MEDIUM, wine.getSugar());
+        Assert.assertEquals(0, wine.getGrapeSortCount());
+        Assert.assertEquals(0, wine.getYear());
+        Assert.assertEquals("Вино Peregrino Vinedo красное полусладкое 11%...", wine.getDescription());
+        Assert.assertEquals("", wine.getGastronomy());
+        Assert.assertEquals("", wine.getTaste());
+        Assert.assertEquals("", wine.getFlavor());
+        Assert.assertEquals(5.f, wine.getRating(), 0.1);
+        Assert.assertEquals(false, wine.getSparkling());
+    }
+
+    private Product getTestProduct() {
+        return Product.builder()
+                .name("Вино Peregrino Vinedo красное полусладкое 11% 0.75л")
+                .oldPrice(0.f)
+                .newPrice(319.f)
+                .link("https://www.vprok.ru/product/peregrino-vinedo-vino-peregr-vin-kr-psl-0-75l--379462")
+                .image("https://www.perekrestok.ru/src/product.file/full/image/57/60/96057.jpeg")
+                .manufacturer(null)
+                .brand("Peregrino Vinedo")
+                .country("Spain")
+                .region(null)
+                .capacity(0.75f)
+                .strength(11.f)
+                .color("Красное")
+                .sugar("Полусладкое")
+                .grapeSort(null)
+                .year(null)
+                .description("Вино Peregrino Vinedo красное полусладкое 11%...")
+                .gastronomy(null)
+                .taste(null)
+                .flavor(null)
+                .rating(5.f)
+                .sparkling(false)
+                .build();
     }
 
     private <T> int isNotNullable(T t) {
