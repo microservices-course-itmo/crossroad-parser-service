@@ -8,10 +8,13 @@ import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
@@ -25,11 +28,13 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
  */
 @Slf4j
 public class ProductService {
+    private static final String PARSED_WINES_COUNT = "parsed_wines_count";
 
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
+    private final AtomicInteger parsedWines = new AtomicInteger();
     @InjectEventLogger
     private EventLogger eventLogger;
 
@@ -39,6 +44,8 @@ public class ProductService {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
+
+        Metrics.gauge(PARSED_WINES_COUNT, parsedWines);
     }
 
     public Optional<List<Product>> getParsedProductList() {
@@ -48,12 +55,12 @@ public class ProductService {
             List<Product> wines = getParsedWines(winesUrl);
 
             eventLogger.info(I_COLLECTED_AND_PARSED, winesUrl.size(), wines.size());
-            metricsCollector.parsedWines(wines.size());
+            parsedWines.set(wines.size());
 
             return Optional.of(wines);
         } catch (Exception ex) {
             eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR);
-            metricsCollector.parsedWines(0);
+            parsedWines.set(0);
 
             return Optional.empty();
         }
