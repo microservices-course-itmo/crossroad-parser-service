@@ -1,5 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.controller;
 
+import com.wine.to.up.commonlib.annotations.InjectEventLogger;
+import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.E_RESPONSE_WRITING_ERROR;
+
 /**
  * <p>
  *     Контроллер для парсинга сайта перекрёстка по запросу пользователя
@@ -35,6 +39,9 @@ public class ParseController {
     private final ExportProductListJob job;
     private final ProductService productService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
+
+    @InjectEventLogger
+    private EventLogger eventLogger;
 
     public ParseController(ExportProductListJob job,
                            ProductService productService,
@@ -65,7 +72,7 @@ public class ParseController {
             try {
                 productService.writeParsedProductListCsv(response.getWriter(), wines.get());
             } catch (Exception ex) {
-                log.error("Failed to write response", ex);
+                eventLogger.error(E_RESPONSE_WRITING_ERROR, ex);
             }
         }
         metricsCollector.parseSiteCsv(new Date().getTime() - startTime);

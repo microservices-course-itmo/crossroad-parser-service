@@ -1,5 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.parse.service;
 
+import com.wine.to.up.commonlib.annotations.InjectEventLogger;
+import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.util.*;
+
+import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
 
 /**
  * Сервис для парсинга html страниц с каталогом и
@@ -30,6 +34,9 @@ public class ParseService {
     private static final String GRAPE_SORT_NAME = "Сорт винограда";
     private static final String FLAVOR = "Аромат";
     private static final String TASTE = "Вкусовая гамма";
+
+    @InjectEventLogger
+    private EventLogger eventLogger;
 
     private final String baseUrl;
 
@@ -56,7 +63,7 @@ public class ParseService {
                 if (NumberUtils.isNumber(capacity)) {
                     productBuilder.capacity(Float.parseFloat(capacity));
                 } else {
-                    log.warn("Can't parse capacity: {} of wine {}", capacity, wineName);
+                    eventLogger.warn(W_FIELD_PARSING_FAILED, "capacity", capacity, wineName);
                 }
                 break;
             case STRENGTH_NAME:
@@ -65,7 +72,7 @@ public class ParseService {
                             Float.parseFloat(value)
                     );
                 } else {
-                    log.warn("Can't parse strength: {} of wine {}", value, wineName);
+                    eventLogger.warn(W_FIELD_PARSING_FAILED, "strength", value, wineName);
                 }
                 break;
             case COLOR_NAME:
@@ -82,7 +89,7 @@ public class ParseService {
                 if (year.length > 0 && NumberUtils.isNumber(year[0])) {
                     productBuilder.year(Integer.parseInt(year[0]));
                 } else {
-                    log.warn("Can't parse a year {}", value);
+                    eventLogger.warn(W_FIELD_PARSING_FAILED, "year", value, wineName);
                 }
                 break;
             case FLAVOR:
@@ -112,8 +119,8 @@ public class ParseService {
                 .map(Element::text);
 
         if (name.isEmpty() || value.isEmpty()) {
-            log.warn(
-                    "Can't get one property of wine {}, name present: {}, value present: {}",
+            eventLogger.warn(
+                    W_PROPERTY_PARSING_FAILED,
                     wineName,
                     name.isPresent(),
                     value.isPresent()
@@ -170,7 +177,7 @@ public class ParseService {
                 .map(Float::parseFloat)
                 .ifPresentOrElse(
                         productBuilder::oldPrice,
-                        () -> log.warn("Can't parse an old price of wine {}", wineName)
+                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "old price", "", wineName)
                 );
 
         Optional.ofNullable(
@@ -189,7 +196,7 @@ public class ParseService {
                                 productBuilder.sparkling(true);
                             }
                         },
-                        () -> log.warn("Can't get description and sparkling {}", wineName)
+                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "description and sparkling", "", wineName)
                 );
 
         Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
@@ -205,7 +212,7 @@ public class ParseService {
                 .map(Float::valueOf)
                 .ifPresentOrElse(
                         productBuilder::rating,
-                        () -> log.error("Can't get a rating")
+                        () -> eventLogger.error(W_FIELD_PARSING_FAILED, "rating", "", wineName)
                 );
 
         Optional.ofNullable(
@@ -216,7 +223,7 @@ public class ParseService {
                 .map(element -> element.attr("href"))
                 .ifPresentOrElse(
                         productBuilder::link,
-                        () -> log.error("Can't get a link")
+                        () -> eventLogger.error(W_FIELD_PARSING_FAILED, "link", "", wineName)
                 );
 
         Optional.ofNullable(
@@ -228,7 +235,7 @@ public class ParseService {
                 .map(elements -> elements.attr("src"))
                 .ifPresentOrElse(
                         partUrl -> productBuilder.image(baseUrl + partUrl),
-                        () -> log.warn("Can't parse image url {}", wineName)
+                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
                 );
 
         return Optional.of(productBuilder.build());
@@ -250,11 +257,10 @@ public class ParseService {
                                     parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
                                 }
                             });
-                            log.info("Found {} urls on the current page", elements.size());
+                            eventLogger.info(I_URLS_FOUND_ON_PAGE, elements.size());
 
                         },
-                        () -> log.warn("Can't parse this page")
-                );
+                        () -> eventLogger.warn(W_PAGE_PARSING_FAILED));
 
 
         return Collections.unmodifiableList(productsUrls);
