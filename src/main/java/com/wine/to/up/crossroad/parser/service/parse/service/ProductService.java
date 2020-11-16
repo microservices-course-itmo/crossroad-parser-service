@@ -3,6 +3,8 @@ package com.wine.to.up.crossroad.parser.service.parse.service;
 import com.opencsv.bean.StatefulBeanToCsv;
 import com.opencsv.bean.StatefulBeanToCsvBuilder;
 import com.opencsv.exceptions.CsvException;
+import com.wine.to.up.commonlib.annotations.InjectEventLogger;
+import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
@@ -11,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
 
 /**
  * <p>
@@ -26,6 +30,9 @@ public class ProductService {
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
+    @InjectEventLogger
+    private EventLogger eventLogger;
+
     public ProductService(ParseService parseService,
                           RequestsService requestsService,
                           CrossroadParserServiceMetricsCollector metricsCollector) {
@@ -40,12 +47,12 @@ public class ProductService {
             winesUrl.addAll(getWinesUrl(true));
             List<Product> wines = getParsedWines(winesUrl);
 
-            log.info("We've collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
+            eventLogger.info(I_COLLECTED_AND_PARSED, winesUrl.size(), wines.size());
             metricsCollector.parsedWines(wines.size());
 
             return Optional.of(wines);
         } catch (Exception ex) {
-            log.error("Can't get parsed product list");
+            eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR);
             metricsCollector.parsedWines(0);
 
             return Optional.empty();
@@ -69,13 +76,13 @@ public class ProductService {
                         .map(parseService::parseUrlsCatalogPage)
                         .orElse(Collections.emptyList());
                 if (winesUrlFromPage.isEmpty()) {
-                    log.warn("Page {} parsed, but no urls found", i);
+                    eventLogger.warn(W_PARSED_BUT_NO_URLS, i);
                 }
                 winesUrl.addAll(winesUrlFromPage);
-                log.info("Page {} parsed", i);
+                eventLogger.info(I_PAGE_PARSED, i);
             }
         });
-        log.info("Found {} urls", winesUrl.size());
+        eventLogger.info(I_URLS_FOUND, winesUrl.size());
         return winesUrl;
     }
 
