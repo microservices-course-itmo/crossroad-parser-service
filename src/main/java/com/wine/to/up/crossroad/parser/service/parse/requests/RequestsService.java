@@ -1,6 +1,9 @@
 package com.wine.to.up.crossroad.parser.service.parse.requests;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wine.to.up.commonlib.annotations.InjectEventLogger;
+import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import lombok.Getter;
 import lombok.Setter;
@@ -20,6 +23,8 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.Optional;
 
+import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
+
 @Slf4j
 @Getter
 @Setter
@@ -32,6 +37,9 @@ public class RequestsService {
 
     private static final String HEADER_REGION = "region";
 
+    @InjectEventLogger
+    private EventLogger eventLogger;
+
     public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
@@ -39,36 +47,47 @@ public class RequestsService {
         this.region = region;
     }
 
-    private String getByUrl(String url) throws URISyntaxException, IOException {
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(timeout)
-                .setSocketTimeout(timeout)
-                .setConnectionRequestTimeout(timeout)
-                .build();
-        HttpClient client = HttpClientBuilder.create()
-                .setDefaultRequestConfig(config)
-                .setRetryHandler(new DefaultHttpRequestRetryHandler(4, false))
-                .build();
+    private Optional<String> getByUrl(String url) {
+        try {
+            RequestConfig config = RequestConfig.custom()
+                    .setConnectTimeout(timeout)
+                    .setSocketTimeout(timeout)
+                    .setConnectionRequestTimeout(timeout)
+                    .build();
+            HttpClient client = HttpClientBuilder.create()
+                    .setDefaultRequestConfig(config)
+                    .setRetryHandler(new DefaultHttpRequestRetryHandler(4, false))
+                    .build();
 
-        URIBuilder builder = new URIBuilder(url);
-        builder.setParameter(HEADER_REGION, region);
-        HttpGet request = new HttpGet(builder.build());
+            URIBuilder builder = new URIBuilder(url);
+            builder.setParameter(HEADER_REGION, region);
+            HttpGet request = new HttpGet(builder.build());
 
-        request.setHeader(HttpHeaders.USER_AGENT, userAgent);
-        HttpResponse response = client.execute(request);
+            request.setHeader(HttpHeaders.USER_AGENT, userAgent);
+            HttpResponse response = client.execute(request);
 
-        StringBuilder result = new StringBuilder();
-        String line = "";
+            StringBuilder result = new StringBuilder();
+            String line = "";
 
-        InputStreamReader sr = new InputStreamReader(response.getEntity().getContent());
+            InputStreamReader sr = new InputStreamReader(response.getEntity().getContent());
 
-        try (BufferedReader rd = new BufferedReader(sr)) {
-            while ((line = rd.readLine()) != null) {
-                result.append(line);
+            try (BufferedReader rd = new BufferedReader(sr)) {
+                while ((line = rd.readLine()) != null) {
+                    result.append(line);
+                }
             }
-        }
 
-        return result.toString();
+            return Optional.of(result.toString());
+        } catch (IOException e) {
+            eventLogger.error(E_URL_FETCHING_ERROR, url, e);
+            return Optional.empty();
+        } catch (URISyntaxException e) {
+            eventLogger.error(E_INVALID_URL, url);
+            return Optional.empty();
+        } catch (Exception e) {
+            eventLogger.error(E_UNEXPECTED_ERROR, e);
+            return Optional.empty();
+        }
     }
 
     public Optional<CatalogResponsePojo> getJson(int page) {
@@ -80,12 +99,17 @@ public class RequestsService {
                 ? "/catalog/alkogol/shampanskoe-igristye-vina"
                 : "/catalog/alkogol/vino";
         String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
-        try {
-            String json = getByUrl(url);
-            CatalogResponsePojo result = new ObjectMapper().readValue(json, CatalogResponsePojo.class);
-            return Optional.of(result);
-        } catch (Exception e) {
-            log.error("Cannot get json response: {} {}", url, e);
+        Optional<String> json = getByUrl(url);
+        if (json.isPresent()) {
+            try {
+                CatalogResponsePojo result = new ObjectMapper().readValue(json.get(), CatalogResponsePojo.class);
+                return Optional.of(result);
+            } catch (JsonProcessingException e) {
+                eventLogger.error(E_JSON_PROCESSING_ERROR, e);
+                return Optional.empty();
+            }
+        }
+        else {
             return Optional.empty();
         }
     }
@@ -96,12 +120,6 @@ public class RequestsService {
     }
 
     public Optional<String> getItemHtml(String url) {
-        try {
-            String result = getByUrl(baseUrl + url);
-            return Optional.of(result);
-        } catch (Exception e) {
-            log.error("Cannot get json response: {} {}", baseUrl + url, e);
-            return Optional.empty();
-        }
+        return getByUrl(baseUrl + url);
     }
 }

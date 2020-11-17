@@ -1,5 +1,7 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
+import com.wine.to.up.commonlib.annotations.InjectEventLogger;
+import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
@@ -13,6 +15,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
 
 /**
  * <p>
@@ -30,6 +34,8 @@ public class ExportProductListJob {
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
+    @InjectEventLogger
+    private EventLogger eventLogger;
 
     private static final String SHOP_LINK = "perekrestok.ru";
 
@@ -51,7 +57,7 @@ public class ExportProductListJob {
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
         long startTime = new Date().getTime();
-        log.info("Start run job method at {}", startTime);
+        eventLogger.info(I_START_JOB, startTime);
 
         try {
             Optional<List<Product>> wineDtoList = productService.getParsedProductList();
@@ -69,10 +75,10 @@ public class ExportProductListJob {
 
             kafkaSendMessageService.sendMessage(message);
         } catch (Exception exception) {
-            log.error("Can't export product list", exception);
+            eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
         }
 
-        log.info("End run job method at {}; duration = {}", new Date().getTime(), (new Date().getTime() - startTime));
+        eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
         metricsCollector.productListJob(new Date().getTime() - startTime);
     }
 
