@@ -8,6 +8,7 @@ import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
+import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +29,13 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
  */
 @Slf4j
 public class ProductService {
-    private static final String PARSED_WINES_COUNT = "parsed_wines_count";
+    private static final String PARSING_IN_PROGRESS_GAUGE = "parsing_in_progress";
 
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
-    private final AtomicInteger parsedWines = new AtomicInteger();
+    private final AtomicInteger parsingInProgress = new AtomicInteger();
     @InjectEventLogger
     private EventLogger eventLogger;
 
@@ -45,22 +46,27 @@ public class ProductService {
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
 
-        Metrics.gauge(PARSED_WINES_COUNT, parsedWines);
+        Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
     }
 
-    public Optional<List<Product>> getParsedProductList() {
+    @Timed
+    public Optional<List<Product>> performParsing() {
         try {
+            parsingInProgress.incrementAndGet();
+
             List<String> winesUrl = getWinesUrl(false);
             winesUrl.addAll(getWinesUrl(true));
             List<Product> wines = getParsedWines(winesUrl);
 
             eventLogger.info(I_COLLECTED_AND_PARSED, winesUrl.size(), wines.size());
-            parsedWines.set(wines.size());
+
+            parsingInProgress.decrementAndGet();
 
             return Optional.of(wines);
         } catch (Exception ex) {
             eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR);
-            parsedWines.set(0);
+
+            parsingInProgress.decrementAndGet();
 
             return Optional.empty();
         }

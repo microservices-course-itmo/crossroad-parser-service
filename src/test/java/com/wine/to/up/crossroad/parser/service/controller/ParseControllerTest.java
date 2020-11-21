@@ -48,7 +48,7 @@ public class ParseControllerTest {
         ExportProductListJob job = mock(ExportProductListJob.class);
         doNothing().when(job).runJob();
         ProductService productService = mock(ProductService.class);
-        when(productService.getParsedProductList()).thenReturn(getProductReturn());
+        when(productService.performParsing()).thenReturn(getProductReturn());
         try {
             doCallRealMethod().when(productService).writeParsedProductListCsv(isA(PrintWriter.class), isA(List.class));
         } catch (Exception ex) {

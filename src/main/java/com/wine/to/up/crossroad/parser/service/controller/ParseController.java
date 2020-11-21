@@ -56,7 +56,7 @@ public class ParseController {
             notes = "Возвращает результат парсинга сайта в формате JSON")
     public List<Product> parseSite() {
         long startTime = new Date().getTime();
-        Optional<List<Product>> wines = productService.getParsedProductList();
+        Optional<List<Product>> wines = productService.performParsing();
         metricsCollector.parseSite(new Date().getTime() - startTime);
         return wines.orElseGet(ArrayList::new);
     }
@@ -67,7 +67,7 @@ public class ParseController {
     public void parseSiteCsv(HttpServletResponse response) {
         long startTime = new Date().getTime();
         response.setCharacterEncoding("UTF-8");
-        Optional<List<Product>> wines = productService.getParsedProductList();
+        Optional<List<Product>> wines = productService.performParsing();
         if (wines.isPresent()) {
             try {
                 productService.writeParsedProductListCsv(response.getWriter(), wines.get());
