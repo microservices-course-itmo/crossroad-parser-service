@@ -79,7 +79,6 @@ public class ExportProductListJob {
         }
 
         eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
-        metricsCollector.productListJob(new Date().getTime() - startTime);
     }
 
     public ParserApi.Wine getProtobufProduct(Product wine) {
