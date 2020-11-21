@@ -53,6 +53,7 @@ public class ProductService {
     public Optional<List<Product>> performParsing() {
         try {
             parsingInProgress.incrementAndGet();
+            metricsCollector.incParsingStarted();
 
             List<String> winesUrl = getWinesUrl(false);
             winesUrl.addAll(getWinesUrl(true));
@@ -60,15 +61,15 @@ public class ProductService {
 
             eventLogger.info(I_COLLECTED_AND_PARSED, winesUrl.size(), wines.size());
 
-            parsingInProgress.decrementAndGet();
-
             return Optional.of(wines);
         } catch (Exception ex) {
             eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR);
-
-            parsingInProgress.decrementAndGet();
+            metricsCollector.incParsingFailed();
 
             return Optional.empty();
+        } finally {
+            parsingInProgress.decrementAndGet();
+            metricsCollector.incParsingComplete();
         }
     }
 

@@ -55,9 +55,7 @@ public class ParseController {
     @ApiOperation(value = "Парсинг сайта по запросу пользователя",
             notes = "Возвращает результат парсинга сайта в формате JSON")
     public List<Product> parseSite() {
-        long startTime = new Date().getTime();
         Optional<List<Product>> wines = productService.performParsing();
-        metricsCollector.parseSite(new Date().getTime() - startTime);
         return wines.orElseGet(ArrayList::new);
     }
 
@@ -65,7 +63,6 @@ public class ParseController {
     @ApiOperation(value = "Парсинг сайта по запросу пользователя",
             notes = "Возвращает результат парсинга сайта в формате CSV")
     public void parseSiteCsv(HttpServletResponse response) {
-        long startTime = new Date().getTime();
         response.setCharacterEncoding("UTF-8");
         Optional<List<Product>> wines = productService.performParsing();
         if (wines.isPresent()) {
@@ -75,7 +72,6 @@ public class ParseController {
                 eventLogger.error(E_RESPONSE_WRITING_ERROR, ex);
             }
         }
-        metricsCollector.parseSiteCsv(new Date().getTime() - startTime);
     }
 
     @GetMapping("/start/job")

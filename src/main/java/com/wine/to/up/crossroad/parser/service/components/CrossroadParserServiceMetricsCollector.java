@@ -19,40 +19,23 @@ import java.util.concurrent.TimeUnit;
 public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollector {
     private static final String SERVICE_NAME = "crossroad_parser_service";
 
-    private static final String PARSE_SITE = "parse_site";
-    private static final String PARSE_SITE_CSV = "parse_site_csv";
-    private static final String PRODUCT_LIST_JOB = "product_list_job";
+    private static final String PARSING_STARTED_COUNTER = "parsing_started";
+    private static final String PARSING_COMPLETE_COUNTER = "parsing_complete";
+    private static final String PARSING_FAILED_COUNTER = "parsing_failed";
 
     public CrossroadParserServiceMetricsCollector() {
         super(SERVICE_NAME);
     }
-    private static final Summary parseSiteSummary = Summary.build()
-            .name(PARSE_SITE)
-            .help("/parse/site execution time")
-            .register();
 
-    private static final Summary parseSiteCsvSummary = Summary.build()
-            .name(PARSE_SITE_CSV)
-            .help("/parse/site_csv execution time")
-            .register();
-
-    private static final Summary productListJobSummary = Summary.build()
-            .name(PRODUCT_LIST_JOB)
-            .help("ExportProductListJob execution time")
-            .register();
-
-    public void parseSite(long time) {
-        Metrics.timer(PARSE_SITE).record(time, TimeUnit.MILLISECONDS);
-        parseSiteSummary.observe(time);
+    public void incParsingStarted() {
+        Metrics.counter(PARSING_STARTED_COUNTER).increment();
     }
 
-    public void parseSiteCsv(long time) {
-        Metrics.timer(PARSE_SITE_CSV).record(time, TimeUnit.MILLISECONDS);
-        parseSiteCsvSummary.observe(time);
+    public void incParsingComplete() {
+        Metrics.counter(PARSING_COMPLETE_COUNTER).increment();
     }
 
-    public void productListJob(long time) {
-        Metrics.timer(PRODUCT_LIST_JOB).record(time, TimeUnit.MILLISECONDS);
-        productListJobSummary.observe(time);
+    public void incParsingFailed() {
+        Metrics.counter(PARSING_FAILED_COUNTER).increment();
     }
 }
