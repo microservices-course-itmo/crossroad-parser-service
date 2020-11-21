@@ -60,7 +60,7 @@ public class ExportProductListJob {
         eventLogger.info(I_START_JOB, startTime);
 
         try {
-            Optional<List<Product>> wineDtoList = productService.getParsedProductList();
+            Optional<List<Product>> wineDtoList = productService.performParsing();
             List<ParserApi.Wine> wines = new ArrayList<>();
             if (wineDtoList.isPresent()) {
                 wines = wineDtoList.get().parallelStream()
