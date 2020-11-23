@@ -14,7 +14,7 @@ public enum Sugar {
     MEDIUM_DRY(1, ParserApi.Wine.Sugar.MEDIUM_DRY, "Полусухое"),
     MEDIUM(2, ParserApi.Wine.Sugar.MEDIUM, "Полусладкое"),
     SWEET(3, ParserApi.Wine.Sugar.SWEET, "Сладкое"),
-    UNRECOGNIZED(4, ParserApi.Wine.Sugar.UNRECOGNIZED, "Неизвестно"),
+    UNDEFINED(4, ParserApi.Wine.Sugar.UNDEFINED_SUGAR, "Неизвестно"),
     ;
 
     private final int id;
@@ -32,6 +32,6 @@ public enum Sugar {
     }
 
     public static ParserApi.Wine.Sugar resolve(String sugar) {
-        return R.getOrDefault(sugar, Sugar.UNRECOGNIZED).productSugar;
+        return R.getOrDefault(sugar, Sugar.UNDEFINED).productSugar;
     }
 }
