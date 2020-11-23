@@ -237,7 +237,7 @@ public class ParseService {
                         partUrl -> productBuilder.image(baseUrl + partUrl),
                         () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
                 );
-
+        eventLogger.info(I_PRODUCT_PARSED, wineName);
         return Optional.of(productBuilder.build());
     }
 
@@ -257,7 +257,7 @@ public class ParseService {
                                     parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
                                 }
                             });
-                            eventLogger.info(I_URLS_FOUND_ON_PAGE, elements.size());
+                            log.info("Found {} urls on a page", elements.size());
 
                         },
                         () -> eventLogger.warn(W_PAGE_PARSING_FAILED));

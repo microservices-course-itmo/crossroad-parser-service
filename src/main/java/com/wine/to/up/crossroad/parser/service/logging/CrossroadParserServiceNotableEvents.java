@@ -19,10 +19,8 @@ public enum CrossroadParserServiceNotableEvents implements NotableEvent {
 
     I_START_JOB("Start run job method at {}"),
     I_END_JOB("End run job method at {}; duration = {}"),
-    I_COLLECTED_AND_PARSED("We've collected url to {} wines and successfully parsed {}"),
     I_PAGE_PARSED("Page {} parsed"),
-    I_URLS_FOUND_ON_PAGE("Found {} urls on a page"),
-    I_URLS_FOUND("Found {} urls");
+    I_PRODUCT_PARSED("Product parsed: {}");
 
     private final String template;
 

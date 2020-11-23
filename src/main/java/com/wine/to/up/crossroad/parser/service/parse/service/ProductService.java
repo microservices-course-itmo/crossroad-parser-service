@@ -59,7 +59,7 @@ public class ProductService {
             winesUrl.addAll(getWinesUrl(true));
             List<Product> wines = getParsedWines(winesUrl);
 
-            eventLogger.info(I_COLLECTED_AND_PARSED, winesUrl.size(), wines.size());
+            log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
 
             return Optional.of(wines);
         } catch (Exception ex) {
@@ -96,7 +96,7 @@ public class ProductService {
                 eventLogger.info(I_PAGE_PARSED, i);
             }
         });
-        eventLogger.info(I_URLS_FOUND, winesUrl.size());
+        log.info("Found {} urls", winesUrl.size());
         return winesUrl;
     }
 
