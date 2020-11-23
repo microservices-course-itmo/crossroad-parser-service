@@ -12,7 +12,9 @@ import java.util.stream.Collectors;
 public enum Color {
     RED(0, ParserApi.Wine.Color.RED,"Красное"),
     ROSE(1, ParserApi.Wine.Color.ROSE, "Розовое"),
-    WHITE(2, ParserApi.Wine.Color.WHITE, "Белое");
+    WHITE(2, ParserApi.Wine.Color.WHITE, "Белое"),
+    UNRECOGNIZED(3, ParserApi.Wine.Color.UNRECOGNIZED, "Неизвестно"),
+    ;
 
     private final int id;
     private final ParserApi.Wine.Color productColor;
@@ -29,6 +31,6 @@ public enum Color {
     }
 
     public static ParserApi.Wine.Color resolve(String color) {
-        return R.getOrDefault(color, Color.RED).productColor;
+        return R.getOrDefault(color, Color.UNRECOGNIZED).productColor;
     }
 }
