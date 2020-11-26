@@ -30,6 +30,7 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 public class ProductService {
     private static final String PARSING_IN_PROGRESS_GAUGE = "parsing_in_progress";
+    private static final String PARSING_PROCESS_DURATION_SUMMARY = "parsing_process_duration";
 
     private final ParseService parseService;
     private final RequestsService requestsService;
@@ -49,7 +50,7 @@ public class ProductService {
         Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
     }
 
-    @Timed
+    @Timed(PARSING_PROCESS_DURATION_SUMMARY)
     public Optional<List<Product>> performParsing() {
         try {
             parsingInProgress.incrementAndGet();
