@@ -3,6 +3,7 @@ package com.wine.to.up.crossroad.parser.service.parse.service;
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
+import io.micrometer.core.annotation.Timed;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang.math.NumberUtils;
@@ -22,6 +23,9 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
  */
 @Slf4j
 public class ParseService {
+    private static final String WINE_DETAILS_PARSING_DURATION_SUMMARY = "wine_details_parsing_duration";
+    private static final String WINE_PAGE_PARSING_DURATION_SUMMARY = "wine_page_parsing_duration";
+
     private static final String MANUFACTURER_NAME = "Производитель";
     private static final String BRAND_NAME = "Торговая марка";
     private static final String COUNTRY_NAME = "Страна/регион";
@@ -136,6 +140,7 @@ public class ParseService {
      *
      * @return возвращает dto Optional<Product>
      */
+    @Timed(WINE_DETAILS_PARSING_DURATION_SUMMARY)
     public Optional<Product> parseProductPage(@NonNull String html) {
         Document document = Jsoup.parse(html);
 
@@ -246,6 +251,7 @@ public class ParseService {
      *
      * @return список ссылок на страницы вин
      */
+    @Timed(WINE_PAGE_PARSING_DURATION_SUMMARY)
     public List<String> parseUrlsCatalogPage(String html) {
         List<String> productsUrls = new ArrayList<>();
         Document document = Jsoup.parse(html);
