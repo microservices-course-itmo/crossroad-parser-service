@@ -124,10 +124,10 @@ public class ParseService {
 
         if (name.isEmpty() || value.isEmpty()) {
             eventLogger.warn(
-                    W_PROPERTY_PARSING_FAILED,
+                    W_WINE_ATTRIBUTE_ABSENT,
                     wineName,
-                    name.isPresent(),
-                    value.isPresent()
+                    name.orElse(null),
+                    value.orElse(null)
             );
             return;
         }
@@ -154,6 +154,7 @@ public class ParseService {
                 .map(Element::text);
 
         if (wineNameO.isEmpty()) {
+            eventLogger.warn(W_WINE_DETAILS_PARSING_FAILED, html);
             return Optional.empty();
         }
         String wineName = wineNameO.get();
@@ -242,7 +243,7 @@ public class ParseService {
                         partUrl -> productBuilder.image(baseUrl + partUrl),
                         () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
                 );
-        eventLogger.info(I_PRODUCT_PARSED, wineName);
+        eventLogger.info(I_WINE_DETAILS_PARSED, wineName);
         return Optional.of(productBuilder.build());
     }
 
@@ -266,7 +267,7 @@ public class ParseService {
                             log.info("Found {} urls on a page", elements.size());
 
                         },
-                        () -> eventLogger.warn(W_PAGE_PARSING_FAILED));
+                        () -> eventLogger.warn(W_WINE_PAGE_PARSING_FAILED, html));
 
 
         return Collections.unmodifiableList(productsUrls);
