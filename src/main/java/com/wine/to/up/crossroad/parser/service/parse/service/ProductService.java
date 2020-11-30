@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
@@ -30,12 +31,15 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 public class ProductService {
     private static final String PARSING_IN_PROGRESS_GAUGE = "parsing_in_progress";
     private static final String PARSING_PROCESS_DURATION_SUMMARY = "parsing_process_duration";
+    private static final String TIME_SINCE_LAST_SUCCEEDED_PARSING_GAUGE = "time_since_last_succeeded_parsing";
 
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
-    private final AtomicInteger parsingInProgress = new AtomicInteger();
+    private final AtomicInteger parsingInProgress = new AtomicInteger(0);
+    private final AtomicLong lastSucceededParsingTime = new AtomicLong(0);
+
     @InjectEventLogger
     private EventLogger eventLogger;
 
@@ -47,6 +51,11 @@ public class ProductService {
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
 
         Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
+        Metrics.gauge(
+                TIME_SINCE_LAST_SUCCEEDED_PARSING_GAUGE,
+                lastSucceededParsingTime,
+                val -> val.get() == 0 ? Double.NaN : (System.currentTimeMillis() - val.get()) / 1000.0
+        );
     }
 
     @Timed(PARSING_PROCESS_DURATION_SUMMARY)
@@ -60,6 +69,8 @@ public class ProductService {
             List<Product> wines = getParsedWines(winesUrl);
 
             log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
+
+            lastSucceededParsingTime.set(System.currentTimeMillis());
 
             return Optional.of(wines);
         } catch (Exception ex) {
