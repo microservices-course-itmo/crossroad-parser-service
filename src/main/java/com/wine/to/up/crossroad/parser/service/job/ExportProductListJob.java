@@ -29,7 +29,6 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
-
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
@@ -74,6 +73,8 @@ public class ExportProductListJob {
                     .build();
 
             kafkaSendMessageService.sendMessage(message);
+            metricsCollector.incWinesSentToKafka(wines.size());
+
         } catch (Exception exception) {
             eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
         }

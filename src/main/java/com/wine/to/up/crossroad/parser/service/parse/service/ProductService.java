@@ -10,12 +10,12 @@ import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
@@ -30,12 +30,16 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 public class ProductService {
     private static final String PARSING_IN_PROGRESS_GAUGE = "parsing_in_progress";
+    private static final String PARSING_PROCESS_DURATION_SUMMARY = "parsing_process_duration";
+    private static final String TIME_SINCE_LAST_SUCCEEDED_PARSING_GAUGE = "time_since_last_succeeded_parsing";
 
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
 
-    private final AtomicInteger parsingInProgress = new AtomicInteger();
+    private final AtomicInteger parsingInProgress = new AtomicInteger(0);
+    private final AtomicLong lastSucceededParsingTime = new AtomicLong(0);
+
     @InjectEventLogger
     private EventLogger eventLogger;
 
@@ -47,9 +51,14 @@ public class ProductService {
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
 
         Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
+        Metrics.gauge(
+                TIME_SINCE_LAST_SUCCEEDED_PARSING_GAUGE,
+                lastSucceededParsingTime,
+                val -> val.get() == 0 ? Double.NaN : (System.currentTimeMillis() - val.get()) / 1000.0
+        );
     }
 
-    @Timed
+    @Timed(PARSING_PROCESS_DURATION_SUMMARY)
     public Optional<List<Product>> performParsing() {
         try {
             parsingInProgress.incrementAndGet();
@@ -60,6 +69,8 @@ public class ProductService {
             List<Product> wines = getParsedWines(winesUrl);
 
             log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
+
+            lastSucceededParsingTime.set(System.currentTimeMillis());
 
             return Optional.of(wines);
         } catch (Exception ex) {
@@ -93,7 +104,7 @@ public class ProductService {
                     eventLogger.warn(W_PARSED_BUT_NO_URLS, i);
                 }
                 winesUrl.addAll(winesUrlFromPage);
-                eventLogger.info(I_PAGE_PARSED, i);
+                eventLogger.info(I_WINES_PAGE_PARSED, i);
             }
         });
         log.info("Found {} urls", winesUrl.size());

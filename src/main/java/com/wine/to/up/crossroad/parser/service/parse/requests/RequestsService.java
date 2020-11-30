@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
+import io.micrometer.core.annotation.Timed;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -30,12 +32,14 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Setter
 @ToString
 public class RequestsService {
+    private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration";
+    private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration";
+    private static final String HEADER_REGION = "region";
+
     private final String baseUrl;
     private final String userAgent;
     private final int timeout;
     private final String region;
-
-    private static final String HEADER_REGION = "region";
 
     @InjectEventLogger
     private EventLogger eventLogger;
@@ -53,6 +57,7 @@ public class RequestsService {
                     .setConnectTimeout(timeout)
                     .setSocketTimeout(timeout)
                     .setConnectionRequestTimeout(timeout)
+                    .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                     .build();
             HttpClient client = HttpClientBuilder.create()
                     .setDefaultRequestConfig(config)
@@ -67,7 +72,7 @@ public class RequestsService {
             HttpResponse response = client.execute(request);
 
             StringBuilder result = new StringBuilder();
-            String line = "";
+            String line;
 
             InputStreamReader sr = new InputStreamReader(response.getEntity().getContent());
 
@@ -114,11 +119,13 @@ public class RequestsService {
         }
     }
 
+    @Timed(WINE_PAGE_FETCHING_DURATION_SUMMARY)
     public Optional<String> getHtml(boolean sparkling, int page) {
         Optional<CatalogResponsePojo> result = getJson(sparkling, page);
         return result.map(CatalogResponsePojo::getHtml);
     }
 
+    @Timed(WINE_DETAILS_FETCHING_DURATION_SUMMARY)
     public Optional<String> getItemHtml(String url) {
         return getByUrl(baseUrl + url);
     }
