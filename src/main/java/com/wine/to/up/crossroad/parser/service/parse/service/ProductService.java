@@ -10,7 +10,6 @@ import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.PrintWriter;
@@ -94,7 +93,7 @@ public class ProductService {
                     eventLogger.warn(W_PARSED_BUT_NO_URLS, i);
                 }
                 winesUrl.addAll(winesUrlFromPage);
-                eventLogger.info(I_PAGE_PARSED, i);
+                eventLogger.info(I_WINES_PAGE_PARSED, i);
             }
         });
         log.info("Found {} urls", winesUrl.size());

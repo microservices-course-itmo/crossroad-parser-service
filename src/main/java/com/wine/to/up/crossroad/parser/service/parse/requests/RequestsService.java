@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
@@ -56,6 +57,7 @@ public class RequestsService {
                     .setConnectTimeout(timeout)
                     .setSocketTimeout(timeout)
                     .setConnectionRequestTimeout(timeout)
+                    .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                     .build();
             HttpClient client = HttpClientBuilder.create()
                     .setDefaultRequestConfig(config)
@@ -70,7 +72,7 @@ public class RequestsService {
             HttpResponse response = client.execute(request);
 
             StringBuilder result = new StringBuilder();
-            String line = "";
+            String line;
 
             InputStreamReader sr = new InputStreamReader(response.getEntity().getContent());
 
