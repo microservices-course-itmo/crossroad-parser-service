@@ -29,7 +29,6 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
-
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
@@ -60,7 +59,7 @@ public class ExportProductListJob {
         eventLogger.info(I_START_JOB, startTime);
 
         try {
-            Optional<List<Product>> wineDtoList = productService.getParsedProductList();
+            Optional<List<Product>> wineDtoList = productService.performParsing();
             List<ParserApi.Wine> wines = new ArrayList<>();
             if (wineDtoList.isPresent()) {
                 wines = wineDtoList.get().parallelStream()
@@ -74,12 +73,13 @@ public class ExportProductListJob {
                     .build();
 
             kafkaSendMessageService.sendMessage(message);
+            metricsCollector.incWinesSentToKafka(wines.size());
+
         } catch (Exception exception) {
             eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
         }
 
         eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
-        metricsCollector.productListJob(new Date().getTime() - startTime);
     }
 
     public ParserApi.Wine getProtobufProduct(Product wine) {

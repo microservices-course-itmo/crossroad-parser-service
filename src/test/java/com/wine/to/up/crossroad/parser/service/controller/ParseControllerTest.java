@@ -48,14 +48,13 @@ public class ParseControllerTest {
         ExportProductListJob job = mock(ExportProductListJob.class);
         doNothing().when(job).runJob();
         ProductService productService = mock(ProductService.class);
-        when(productService.getParsedProductList()).thenReturn(getProductReturn());
+        when(productService.performParsing()).thenReturn(getProductReturn());
         try {
             doCallRealMethod().when(productService).writeParsedProductListCsv(isA(PrintWriter.class), isA(List.class));
         } catch (Exception ex) {
             System.err.println("Can't parse product list to csv" + ex);
         }
         CrossroadParserServiceMetricsCollector metricsCollector = mock(CrossroadParserServiceMetricsCollector.class);
-        doNothing().when(metricsCollector).parseSite(isA(Long.class));
         parseControllerMock = new ParseController(job, productService, metricsCollector);
     }
 

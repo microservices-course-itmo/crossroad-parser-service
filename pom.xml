@@ -16,10 +16,10 @@
     </parent>
 
     <properties>
-        <current-version>0.7.0</current-version>
+        <current-version>0.9.0</current-version>
 
         <service.commonlib.version>0.2.2-SNAPSHOT</service.commonlib.version>
-        <parser.common.api.version>0.2.2-SNAPSHOT</parser.common.api.version>
+        <parser.common.api.version>0.2.3-SNAPSHOT</parser.common.api.version>
         <jsoup.version>1.13.1</jsoup.version>
         <opencsv.version>5.2</opencsv.version>
         <httpcomponents.version>4.5.12</httpcomponents.version>
@@ -89,6 +89,10 @@
             <version>${httpcomponents.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+        </dependency>
 
     </dependencies>
 </project>

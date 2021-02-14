@@ -2,10 +2,12 @@ package com.wine.to.up.crossroad.parser.service.components;
 
 import com.wine.to.up.commonlib.metrics.CommonMetricsCollector;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import io.prometheus.client.Gauge;
 import io.prometheus.client.Summary;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -19,40 +21,35 @@ import java.util.concurrent.TimeUnit;
 public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollector {
     private static final String SERVICE_NAME = "crossroad_parser_service";
 
-    private static final String PARSE_SITE = "parse_site";
-    private static final String PARSE_SITE_CSV = "parse_site_csv";
-    private static final String PRODUCT_LIST_JOB = "product_list_job";
+    private static final String PARSING_STARTED_COUNTER = "parsing_started";
+    private static final String PARSING_COMPLETE_COUNTER = "parsing_complete";
+    private static final String WINES_PUBLISHED_TO_KAFKA_COUNT = "wines_published_to_kafka_count";
+
+    private static final String PARSING_COMPLETE_STATUS_TAG = "status";
 
     public CrossroadParserServiceMetricsCollector() {
         super(SERVICE_NAME);
     }
-    private static final Summary parseSiteSummary = Summary.build()
-            .name(PARSE_SITE)
-            .help("/parse/site execution time")
-            .register();
 
-    private static final Summary parseSiteCsvSummary = Summary.build()
-            .name(PARSE_SITE_CSV)
-            .help("/parse/site_csv execution time")
-            .register();
-
-    private static final Summary productListJobSummary = Summary.build()
-            .name(PRODUCT_LIST_JOB)
-            .help("ExportProductListJob execution time")
-            .register();
-
-    public void parseSite(long time) {
-        Metrics.timer(PARSE_SITE).record(time, TimeUnit.MILLISECONDS);
-        parseSiteSummary.observe(time);
+    public void incParsingStarted() {
+        Metrics.counter(PARSING_STARTED_COUNTER).increment();
     }
 
-    public void parseSiteCsv(long time) {
-        Metrics.timer(PARSE_SITE_CSV).record(time, TimeUnit.MILLISECONDS);
-        parseSiteCsvSummary.observe(time);
+    public void incParsingComplete() {
+        Metrics.counter(
+                PARSING_COMPLETE_COUNTER,
+                List.of(Tag.of(PARSING_COMPLETE_STATUS_TAG, "SUCCESS"))
+        ).increment();
     }
 
-    public void productListJob(long time) {
-        Metrics.timer(PRODUCT_LIST_JOB).record(time, TimeUnit.MILLISECONDS);
-        productListJobSummary.observe(time);
+    public void incParsingFailed() {
+        Metrics.counter(
+                PARSING_COMPLETE_COUNTER,
+                List.of(Tag.of(PARSING_COMPLETE_STATUS_TAG, "FAILED"))
+        ).increment();
+    }
+
+    public void incWinesSentToKafka(int count) {
+        Metrics.counter(WINES_PUBLISHED_TO_KAFKA_COUNT).increment(count);
     }
 }

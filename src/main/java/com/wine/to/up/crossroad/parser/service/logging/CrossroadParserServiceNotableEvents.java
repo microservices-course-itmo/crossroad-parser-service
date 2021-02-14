@@ -13,16 +13,15 @@ public enum CrossroadParserServiceNotableEvents implements NotableEvent {
     E_PRODUCT_LIST_PARSING_ERROR("Can't get parsed product list"),
 
     W_FIELD_PARSING_FAILED("Can't parse {} {} of wine {}"),
-    W_PAGE_PARSING_FAILED("Can't parse page"),
-    W_PROPERTY_PARSING_FAILED("Can't get one property of wine {}, name present: {}, value present: {}"),
+    W_WINE_PAGE_PARSING_FAILED("Can't parse wine page {}"),
+    W_WINE_DETAILS_PARSING_FAILED("Can't parse wine details {}"),
+    W_WINE_ATTRIBUTE_ABSENT("Can't get one attribute of wine {}, name: {}, value: {}"),
     W_PARSED_BUT_NO_URLS("Page {} parsed, but no urls found"),
 
     I_START_JOB("Start run job method at {}"),
     I_END_JOB("End run job method at {}; duration = {}"),
-    I_COLLECTED_AND_PARSED("We've collected url to {} wines and successfully parsed {}"),
-    I_PAGE_PARSED("Page {} parsed"),
-    I_URLS_FOUND_ON_PAGE("Found {} urls on a page"),
-    I_URLS_FOUND("Found {} urls");
+    I_WINES_PAGE_PARSED("Wines page {} parsed"),
+    I_WINE_DETAILS_PARSED("Wine details parsed: {}");
 
     private final String template;
 

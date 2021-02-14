@@ -169,7 +169,7 @@ public class ExportProductListJobTest {
         Assert.assertEquals("", wine.getTaste());
         Assert.assertEquals("", wine.getFlavor());
         Assert.assertEquals(5.f, wine.getRating(), 0.1);
-        Assert.assertEquals(false, wine.getSparkling());
+        Assert.assertFalse(wine.getSparkling());
     }
 
     private Product getTestProduct() {
@@ -202,8 +202,8 @@ public class ExportProductListJobTest {
         return castBoolToInt(t != null);
     }
 
-    private float isNotZero(float value) {
-        return castBoolToInt(value != 0.);
+    private float isNotZero(Float value) {
+        return castBoolToInt(value != null && value != 0.);
     }
 
     private int castBoolToInt(boolean expression) {
