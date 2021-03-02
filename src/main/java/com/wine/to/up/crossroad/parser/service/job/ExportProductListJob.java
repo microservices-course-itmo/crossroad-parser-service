@@ -14,6 +14,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
@@ -48,10 +49,8 @@ public class ExportProductListJob {
     }
 
     /**
-     * Джоб, выполняющий свои действия два раза в сутки.
-     * В этом классе происходит взаимодействие получаемых с сайта данных и Кафки
-     *
-     * @return
+     * Job running every 24 hours.
+     * Load data from the website, parse and send it to Kafka in batches 23 times with a pause of 1 hour.
      */
     @Scheduled(cron = "${job.cron.export.product.list}")
     public void runJob() {
@@ -67,13 +66,18 @@ public class ExportProductListJob {
                         .collect(Collectors.toList());
             }
 
-            ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
-                    .setShopLink(SHOP_LINK)
-                    .addAllWines(wines)
-                    .build();
-
-            kafkaSendMessageService.sendMessage(message);
-            metricsCollector.incWinesSentToKafka(wines.size());
+            final int batchSize = (int) Math.ceil(wines.size() / 23.0);
+            for (int i = 0; i < 23; i++) {
+                final int fromIndex = i * batchSize;
+                final int toIndex = Math.min(wines.size(), (i + 1) * batchSize);
+                ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
+                        .setShopLink(SHOP_LINK)
+                        .addAllWines(wines.subList(fromIndex, toIndex))
+                        .build();
+                kafkaSendMessageService.sendMessage(message);
+                metricsCollector.incWinesSentToKafka(toIndex - fromIndex);
+                TimeUnit.HOURS.sleep(1);
+            }
 
         } catch (Exception exception) {
             eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
