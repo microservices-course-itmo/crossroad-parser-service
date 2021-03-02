@@ -31,6 +31,9 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
+    private static final int BATCH_SIZE = 20;
+    private static final int TOTAL_PARSING_DURATION = 23 * 60 * 60 * 1000;
+
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
@@ -63,29 +66,37 @@ public class ExportProductListJob {
         eventLogger.info(I_START_JOB, startTime);
 
         try {
-            Optional<List<Product>> wineDtoList = productService.performParsing();
-            List<ParserApi.Wine> wines = Collections.emptyList();
-            if (wineDtoList.isPresent()) {
-                wines = wineDtoList.get().parallelStream()
-                        .map(this::getProtobufProduct)
+            List<Product> wines = new ArrayList<>();
+            List<String> winesUrl = productService.getWinesUrl(false);
+            winesUrl.addAll(productService.getWinesUrl(true));
+
+            final int batchesCount = (int) Math.ceil(winesUrl.size() / BATCH_SIZE);
+            final int sleepTime = TOTAL_PARSING_DURATION / batchesCount;
+
+            for (int i = 0; i < batchesCount; i++) {
+                final int fromIndex = i * BATCH_SIZE;
+                final int toIndex = Math.min(winesUrl.size(), (i + 1) * BATCH_SIZE);
+
+                List<Product> winesBatch = winesUrl
+                        .subList(fromIndex, toIndex)
+                        .parallelStream()
+                        .map(productService::parseWine)
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
                         .collect(Collectors.toList());
+                wines.addAll(winesBatch);
 
-                saveDb(wineDtoList.get());
-            }
-
-            final int batchSize = (int) Math.ceil(wines.size() / 23.0);
-            for (int i = 0; i < 23; i++) {
-                final int fromIndex = i * batchSize;
-                final int toIndex = Math.min(wines.size(), (i + 1) * batchSize);
                 ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
                         .setShopLink(SHOP_LINK)
-                        .addAllWines(wines.subList(fromIndex, toIndex))
+                        .addAllWines(winesBatch.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
                         .build();
+
                 kafkaSendMessageService.sendMessage(message);
                 metricsCollector.incWinesSentToKafka(toIndex - fromIndex);
-                TimeUnit.HOURS.sleep(1);
-            }
 
+                TimeUnit.MILLISECONDS.sleep(sleepTime);
+            }
+            saveDb(wines);
         } catch (Exception exception) {
             eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
         }
