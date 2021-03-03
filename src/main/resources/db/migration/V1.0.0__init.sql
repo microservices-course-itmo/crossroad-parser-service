@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS wines CASCADE;
+
+CREATE TABLE wines (
+    id UUID PRIMARY KEY,
+    name TEXT
+);

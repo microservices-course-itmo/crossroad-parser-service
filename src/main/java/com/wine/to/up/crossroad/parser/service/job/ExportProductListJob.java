@@ -7,6 +7,7 @@ import com.wine.to.up.crossroad.parser.service.components.CrossroadParserService
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
+import com.wine.to.up.crossroad.parser.service.db.services.WineService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class ExportProductListJob {
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
+    private final WineService wineService;
 
     @InjectEventLogger
     private EventLogger eventLogger;
@@ -42,10 +44,13 @@ public class ExportProductListJob {
 
     public ExportProductListJob(ProductService productService,
                                 KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService,
-                                CrossroadParserServiceMetricsCollector metricsCollector) {
+                                CrossroadParserServiceMetricsCollector metricsCollector,
+                                WineService wineService)
+    {
         this.productService = Objects.requireNonNull(productService, "Can't get productService");
         this.kafkaSendMessageService = Objects.requireNonNull(kafkaSendMessageService, "Can't get kafkaSendMessageService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
+        this.wineService = Objects.requireNonNull(wineService, "Can't get wineService");
     }
 
     /**
@@ -59,11 +64,13 @@ public class ExportProductListJob {
 
         try {
             Optional<List<Product>> wineDtoList = productService.performParsing();
-            List<ParserApi.Wine> wines = new ArrayList<>();
+            List<ParserApi.Wine> wines = Collections.emptyList();
             if (wineDtoList.isPresent()) {
                 wines = wineDtoList.get().parallelStream()
                         .map(this::getProtobufProduct)
                         .collect(Collectors.toList());
+
+                saveDb(wineDtoList.get());
             }
 
             final int batchSize = (int) Math.ceil(wines.size() / 23.0);
@@ -84,6 +91,16 @@ public class ExportProductListJob {
         }
 
         eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
+    }
+
+    public void saveDb(List<Product> wineDtoList) {
+        try {
+            wineService.deleteAll();
+            wineService.saveAll(wineDtoList);
+            log.info("DB: wines saved");
+        } catch (Exception ex) {
+            log.warn("DB: can't save wines in db", ex);
+        }
     }
 
     public ParserApi.Wine getProtobufProduct(Product wine) {

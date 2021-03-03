@@ -45,7 +45,8 @@ public class ProductService {
 
     public ProductService(ParseService parseService,
                           RequestsService requestsService,
-                          CrossroadParserServiceMetricsCollector metricsCollector) {
+                          CrossroadParserServiceMetricsCollector metricsCollector)
+    {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");

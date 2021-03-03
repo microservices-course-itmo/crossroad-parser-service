@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.controller;
 
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
+import com.wine.to.up.crossroad.parser.service.db.services.WineService;
 import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import org.junit.Assert;
@@ -37,11 +38,13 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class ParseControllerTest {
+public class ParseRepositoryTest {
 
     @Autowired
     private ParseController parseController;
     private ParseController parseControllerMock;
+    @Autowired
+    private WineService wineService;
 
     @Before
     public void init() {
@@ -55,7 +58,7 @@ public class ParseControllerTest {
             System.err.println("Can't parse product list to csv" + ex);
         }
         CrossroadParserServiceMetricsCollector metricsCollector = mock(CrossroadParserServiceMetricsCollector.class);
-        parseControllerMock = new ParseController(job, productService, metricsCollector);
+        parseControllerMock = new ParseController(job, productService, metricsCollector, wineService);
     }
 
     private Optional<List<Product>> getProductReturn() {
