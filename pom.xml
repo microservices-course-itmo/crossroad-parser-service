@@ -23,6 +23,7 @@
         <jsoup.version>1.13.1</jsoup.version>
         <opencsv.version>5.2</opencsv.version>
         <httpcomponents.version>4.5.12</httpcomponents.version>
+        <postgresql.version>42.2.19</postgresql.version>
     </properties>
 
     <dependencies>
@@ -35,6 +36,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
 
         <!-- Required: commonlib. Includes metrics, kafka etc-->
@@ -94,5 +99,11 @@
             <artifactId>spring-aspects</artifactId>
         </dependency>
 
+        <!-- Db -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>${postgresql.version}</version>
+        </dependency>
     </dependencies>
 </project>
