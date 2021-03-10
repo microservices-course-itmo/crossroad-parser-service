@@ -70,7 +70,7 @@ public class ExportProductListJob {
             List<String> winesUrl = productService.getWinesUrl(false);
             winesUrl.addAll(productService.getWinesUrl(true));
 
-            final int batchesCount = (int) Math.ceil(winesUrl.size() / BATCH_SIZE);
+            final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
             final int sleepTime = TOTAL_PARSING_DURATION / batchesCount;
 
             for (int i = 0; i < batchesCount; i++) {
@@ -136,8 +136,12 @@ public class ExportProductListJob {
         if (sugar != null) {
             builder.setSugar(sugar);
         }
-        builder.setOldPrice(wine.getOldPrice());
         builder.setNewPrice(wine.getNewPrice());
+        if (wine.getOldPrice() == 0.0f) {
+            builder.setOldPrice(wine.getNewPrice());
+        } else {
+            builder.setOldPrice(wine.getOldPrice());
+        }
         if (wine.getImage() != null) {
             builder.setImage(wine.getImage());
         }
