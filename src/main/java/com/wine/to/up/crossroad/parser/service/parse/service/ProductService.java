@@ -91,7 +91,7 @@ public class ProductService {
         btcsv.write(products);
     }
 
-    private List<String> getWinesUrl(boolean sparkling) {
+    public List<String> getWinesUrl(boolean sparkling) {
         List<String> winesUrl = new ArrayList<>();
 
         requestsService.getJson(sparkling,1).ifPresent(pojo -> {
@@ -114,6 +114,15 @@ public class ProductService {
 
     private int getPages(com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo pojo) {
         return (int) Math.ceil((double) pojo.getCount() / 30);
+    }
+
+    public Optional<Product> parseWine(String wineUrl) {
+        Optional<String> html = requestsService.getItemHtml(wineUrl);
+        if (html.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return parseService.parseProductPage(html.get());
     }
 
     private List<Product> getParsedWines(List<String> winesUrl) {
