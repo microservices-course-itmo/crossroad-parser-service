@@ -39,11 +39,13 @@ public class ExportProductListJobTest {
     @Autowired
     private ParseService parseService;
 
+    @Ignore("Integration test")
     @Test
     public void parseFirstPageSparkling() {
         parseFirstPage(true);
     }
 
+    @Ignore("Integration test")
     @Test
     public void parseFirstPageNonSparkling() {
         parseFirstPage(false);
@@ -150,7 +152,7 @@ public class ExportProductListJobTest {
         ParserApi.Wine wine = exportProductListJob.getProtobufProduct(product);
 
         Assert.assertEquals("Вино Peregrino Vinedo красное полусладкое 11% 0.75л", wine.getName());
-        Assert.assertEquals(0.f, wine.getOldPrice(), 0.1);
+        Assert.assertEquals(319.f, wine.getOldPrice(), 0.1);
         Assert.assertEquals(319.f, wine.getNewPrice(), 0.1);
         Assert.assertEquals("https://www.vprok.ru/product/peregrino-vinedo-vino-peregr-vin-kr-psl-0-75l--379462", wine.getLink());
         Assert.assertEquals("https://www.perekrestok.ru/src/product.file/full/image/57/60/96057.jpeg", wine.getImage());
