@@ -65,9 +65,9 @@ public class ProductService {
             parsingInProgress.incrementAndGet();
             metricsCollector.incParsingStarted();
 
-            List<String> winesUrl = getWinesUrl(false);
-            winesUrl.addAll(getWinesUrl(true));
-            List<Product> wines = getParsedWines(winesUrl);
+            List<String> winesUrl = getWinesUrl(false, "2");
+            winesUrl.addAll(getWinesUrl(true, "2"));
+            List<Product> wines = getParsedWines(winesUrl, "2");
 
             log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
 
@@ -91,14 +91,14 @@ public class ProductService {
         btcsv.write(products);
     }
 
-    public List<String> getWinesUrl(boolean sparkling) {
+    public List<String> getWinesUrl(boolean sparkling, String region) {
         List<String> winesUrl = new ArrayList<>();
 
-        requestsService.getJson(sparkling,1).ifPresent(pojo -> {
+        requestsService.getJson(sparkling, region, 1).ifPresent(pojo -> {
             int pages = getPages(pojo);
             for (int i = 1; i <= pages; i++) {
                 List<String> winesUrlFromPage = requestsService
-                        .getHtml(sparkling, i)
+                        .getHtml(sparkling, region, i)
                         .map(parseService::parseUrlsCatalogPage)
                         .orElse(Collections.emptyList());
                 if (winesUrlFromPage.isEmpty()) {
@@ -116,8 +116,8 @@ public class ProductService {
         return (int) Math.ceil((double) pojo.getCount() / 30);
     }
 
-    public Optional<Product> parseWine(String wineUrl) {
-        Optional<String> html = requestsService.getItemHtml(wineUrl);
+    public Optional<Product> parseWine(String wineUrl, String region) {
+        Optional<String> html = requestsService.getItemHtml(wineUrl, region);
         if (html.isEmpty()) {
             return Optional.empty();
         }
@@ -125,9 +125,9 @@ public class ProductService {
         return parseService.parseProductPage(html.get());
     }
 
-    private List<Product> getParsedWines(List<String> winesUrl) {
+    private List<Product> getParsedWines(List<String> winesUrl, String region) {
         return winesUrl.parallelStream()
-                .map(requestsService::getItemHtml)
+                .map(url -> requestsService.getItemHtml(url, region))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(parseService::parseProductPage)

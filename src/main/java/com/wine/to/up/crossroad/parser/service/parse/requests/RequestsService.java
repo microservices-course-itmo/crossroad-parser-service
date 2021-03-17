@@ -34,24 +34,22 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 public class RequestsService {
     private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration";
     private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration";
-    private static final String HEADER_REGION = "region";
+    private static final String REGION_PARAMETER = "region";
 
     private final String baseUrl;
     private final String userAgent;
     private final int timeout;
-    private final String region;
 
     @InjectEventLogger
     private EventLogger eventLogger;
 
-    public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
+    public RequestsService(String baseUrl, String userAgent, int timeout) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
-        this.region = region;
     }
 
-    private Optional<String> getByUrl(String url) {
+    private Optional<String> getByUrl(String url, String region) {
         try {
             RequestConfig config = RequestConfig.custom()
                     .setConnectTimeout(timeout)
@@ -65,7 +63,7 @@ public class RequestsService {
                     .build();
 
             URIBuilder builder = new URIBuilder(url);
-            builder.setParameter(HEADER_REGION, region);
+            builder.setParameter(REGION_PARAMETER, region);
             HttpGet request = new HttpGet(builder.build());
 
             request.setHeader(HttpHeaders.USER_AGENT, userAgent);
@@ -96,15 +94,15 @@ public class RequestsService {
     }
 
     public Optional<CatalogResponsePojo> getJson(int page) {
-        return getJson(false, page);
+        return getJson(false, "2", page);
     }
 
-    public Optional<CatalogResponsePojo> getJson(boolean sparkling, int page) {
+    public Optional<CatalogResponsePojo> getJson(boolean sparkling, String region, int page) {
         String relativeUrl = sparkling
                 ? "/catalog/alkogol/shampanskoe-igristye-vina"
                 : "/catalog/alkogol/vino";
         String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
-        Optional<String> json = getByUrl(url);
+        Optional<String> json = getByUrl(url, region);
         if (json.isPresent()) {
             try {
                 CatalogResponsePojo result = new ObjectMapper().readValue(json.get(), CatalogResponsePojo.class);
@@ -120,13 +118,13 @@ public class RequestsService {
     }
 
     @Timed(WINE_PAGE_FETCHING_DURATION_SUMMARY)
-    public Optional<String> getHtml(boolean sparkling, int page) {
-        Optional<CatalogResponsePojo> result = getJson(sparkling, page);
+    public Optional<String> getHtml(boolean sparkling, String region, int page) {
+        Optional<CatalogResponsePojo> result = getJson(sparkling, region, page);
         return result.map(CatalogResponsePojo::getHtml);
     }
 
     @Timed(WINE_DETAILS_FETCHING_DURATION_SUMMARY)
-    public Optional<String> getItemHtml(String url) {
-        return getByUrl(baseUrl + url);
+    public Optional<String> getItemHtml(String url, String region) {
+        return getByUrl(baseUrl + url, region);
     }
 }

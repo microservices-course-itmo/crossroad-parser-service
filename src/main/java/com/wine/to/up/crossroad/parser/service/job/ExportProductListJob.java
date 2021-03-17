@@ -11,8 +11,11 @@ import com.wine.to.up.crossroad.parser.service.db.services.WineService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.util.Pair;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.context.event.EventListener;
 
 import java.util.*;
@@ -35,6 +38,8 @@ public class ExportProductListJob {
     public static final int SLEEP_AFTER_READY_SECONDS = 5;
     private static final int BATCH_SIZE = 20;
     private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 60;
+    @Value("${site.header.region}")
+    private String[] regions;
 
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
@@ -77,19 +82,23 @@ public class ExportProductListJob {
         while (true) {
             try {
                 List<Product> wines = new ArrayList<>();
-                List<String> winesUrl = productService.getWinesUrl(false);
-                winesUrl.addAll(productService.getWinesUrl(true));
+                List<Pair<String, String>> winesUrlWithRegions = new ArrayList<>();
+                for (final String region: regions) {
+                    List<String> winesUrl = productService.getWinesUrl(false, region);
+                    winesUrl.addAll(productService.getWinesUrl(true, region));
+                    winesUrl.forEach(url -> winesUrlWithRegions.add(Pair.of(url, region)));
+                }
 
                 final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
 
                 for (int i = 0; i < batchesCount; i++) {
                     final int fromIndex = i * BATCH_SIZE;
-                    final int toIndex = Math.min(winesUrl.size(), (i + 1) * BATCH_SIZE);
+                    final int toIndex = Math.min(winesUrlWithRegions.size(), (i + 1) * BATCH_SIZE);
 
-                    List<Product> winesBatch = winesUrl
+                    List<Product> winesBatch = winesUrlWithRegions
                             .subList(fromIndex, toIndex)
                             .parallelStream()
-                            .map(productService::parseWine)
+                            .map(pair -> productService.parseWine(pair.getFirst(), pair.getSecond()))
                             .filter(Optional::isPresent)
                             .map(Optional::get)
                             .collect(Collectors.toList());

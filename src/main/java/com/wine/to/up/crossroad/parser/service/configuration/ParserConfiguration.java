@@ -21,8 +21,6 @@ import org.springframework.context.annotation.PropertySource;
 public class ParserConfiguration {
     @Value("${site.connect.timeout}")
     private int timeout;
-    @Value("${site.header.region}")
-    private String region;
     @Value("${site.base.url}")
     private String baseUrl;
     @Value("${site.user.agent}")
@@ -30,7 +28,7 @@ public class ParserConfiguration {
 
     @Bean
     RequestsService requestsService() {
-        return new RequestsService(baseUrl, userAgent, timeout, region);
+        return new RequestsService(baseUrl, userAgent, timeout);
     }
 
     @Bean
