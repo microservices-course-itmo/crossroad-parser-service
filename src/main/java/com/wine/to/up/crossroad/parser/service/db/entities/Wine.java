@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -16,6 +18,8 @@ import java.util.Set;
 @Setter
 @Builder
 @EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
 @ToString
 @Entity
 @Table(name = "wines")
@@ -91,57 +95,6 @@ public class Wine {
     @Column(name = "sparkling")
     private boolean sparkling;
 
-    public Wine() {
-    }
-
-    public Wine(
-            Long id,
-            String name,
-            Float oldPrice,
-            Float newPrice,
-            String link,
-            String image,
-            String manufacturer,
-            String brand,
-            String country,
-            Set<String> region,
-            Float capacity,
-            Float strength,
-            String color,
-            String sugar,
-            Set<String> grapeSort,
-            Integer year,
-            String description,
-            String gastronomy,
-            String taste,
-            String flavor,
-            Float rating,
-            boolean sparkling)
-    {
-        this.id = id;
-        this.name = name;
-        this.oldPrice = oldPrice;
-        this.newPrice = newPrice;
-        this.link = link;
-        this.image = image;
-        this.manufacturer = manufacturer;
-        this.brand = brand;
-        this.country = country;
-        this.region = region;
-        this.capacity = capacity;
-        this.strength = strength;
-        this.color = color;
-        this.sugar = sugar;
-        this.grapeSort = grapeSort;
-        this.year = year;
-        this.description = description;
-        this.gastronomy = gastronomy;
-        this.taste = taste;
-        this.flavor = flavor;
-        this.rating = rating;
-        this.sparkling = sparkling;
-    }
-    
     public static Wine fromProduct(Product product) {
         return Wine.builder()
                 .name(product.getName())
