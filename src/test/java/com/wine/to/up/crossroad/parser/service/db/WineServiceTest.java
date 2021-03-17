@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.db;
 
 import com.wine.to.up.crossroad.parser.service.db.entities.Wine;
 import com.wine.to.up.crossroad.parser.service.db.services.WineService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 @RunWith(SpringRunner.class)
+@Ignore("Integration test")
 @SpringBootTest
 public class WineServiceTest {
     @Autowired

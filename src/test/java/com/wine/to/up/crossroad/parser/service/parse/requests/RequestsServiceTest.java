@@ -15,6 +15,7 @@ import java.util.Optional;
 
 @Slf4j
 @RunWith(SpringRunner.class)
+@Ignore("Integration test")
 @SpringBootTest
 public class RequestsServiceTest {
     @Autowired

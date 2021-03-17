@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.parse.service;
 
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import java.util.Optional;
  * @author 4ound
  */
 @RunWith(SpringRunner.class)
+@Ignore("Integration test")
 @SpringBootTest
 public class ParseServiceTest {
     public static final String CATALOG_FILE_PATH = "src/test/resources/catalog.html";
