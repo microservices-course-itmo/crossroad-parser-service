@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @RunWith(SpringRunner.class)
+@Ignore("Integration test")
 @SpringBootTest
 public class ExportProductListJobTest {
 
