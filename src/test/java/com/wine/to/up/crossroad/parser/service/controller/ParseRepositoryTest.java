@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
  */
 
 @RunWith(SpringRunner.class)
+@Ignore("Integration test")
 @SpringBootTest
 public class ParseRepositoryTest {
 
