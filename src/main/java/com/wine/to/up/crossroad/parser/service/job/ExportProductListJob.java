@@ -33,8 +33,8 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
     public static final int SLEEP_AFTER_READY_SECONDS = 5;
-    private static final int BATCH_SIZE = 20;
-    private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 60;
+    private static final int BATCH_SIZE = 5;
+    private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 30;
 
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
