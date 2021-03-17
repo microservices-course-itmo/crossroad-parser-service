@@ -11,8 +11,9 @@ import com.wine.to.up.crossroad.parser.service.db.services.WineService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.event.EventListener;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -31,8 +32,9 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Slf4j
 @PropertySource("classpath:crossroad-site.properties")
 public class ExportProductListJob {
+    public static final int SLEEP_AFTER_READY_SECONDS = 5;
     private static final int BATCH_SIZE = 20;
-    private static final int TOTAL_PARSING_DURATION = 23 * 60 * 60 * 1000;
+    private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 60;
 
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
@@ -57,51 +59,59 @@ public class ExportProductListJob {
     }
 
     /**
-     * Job running every 24 hours.
+     * Job running with start of application.
      * Load data from the website, parse and send it to Kafka in batches 23 times with a pause of 1 hour.
      */
-    @Scheduled(cron = "${job.cron.export.product.list}")
+    @EventListener(ApplicationReadyEvent.class)
     public void runJob() {
+        log.info("Application started, parsing will start shortly ({} sec)", SLEEP_AFTER_READY_SECONDS);
+        try {
+            TimeUnit.SECONDS.sleep(SLEEP_AFTER_READY_SECONDS);
+        } catch (InterruptedException interruptedException) {
+            log.error("Can't sleep, immediate parsing");
+        }
+
         long startTime = new Date().getTime();
         eventLogger.info(I_START_JOB, startTime);
 
-        try {
-            List<Product> wines = new ArrayList<>();
-            List<String> winesUrl = productService.getWinesUrl(false);
-            winesUrl.addAll(productService.getWinesUrl(true));
+        while (true) {
+            try {
+                List<Product> wines = new ArrayList<>();
+                List<String> winesUrl = productService.getWinesUrl(false);
+                winesUrl.addAll(productService.getWinesUrl(true));
 
-            final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
-            final int sleepTime = TOTAL_PARSING_DURATION / batchesCount;
+                final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
 
-            for (int i = 0; i < batchesCount; i++) {
-                final int fromIndex = i * BATCH_SIZE;
-                final int toIndex = Math.min(winesUrl.size(), (i + 1) * BATCH_SIZE);
+                for (int i = 0; i < batchesCount; i++) {
+                    final int fromIndex = i * BATCH_SIZE;
+                    final int toIndex = Math.min(winesUrl.size(), (i + 1) * BATCH_SIZE);
 
-                List<Product> winesBatch = winesUrl
-                        .subList(fromIndex, toIndex)
-                        .parallelStream()
-                        .map(productService::parseWine)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
-                        .collect(Collectors.toList());
-                wines.addAll(winesBatch);
+                    List<Product> winesBatch = winesUrl
+                            .subList(fromIndex, toIndex)
+                            .parallelStream()
+                            .map(productService::parseWine)
+                            .filter(Optional::isPresent)
+                            .map(Optional::get)
+                            .collect(Collectors.toList());
+                    wines.addAll(winesBatch);
 
-                ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
-                        .setShopLink(SHOP_LINK)
-                        .addAllWines(winesBatch.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
-                        .build();
+                    ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
+                            .setShopLink(SHOP_LINK)
+                            .addAllWines(winesBatch.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
+                            .build();
 
-                kafkaSendMessageService.sendMessage(message);
-                metricsCollector.incWinesSentToKafka(toIndex - fromIndex);
+                    kafkaSendMessageService.sendMessage(message);
+                    metricsCollector.incWinesSentToKafka(toIndex - fromIndex);
 
-                TimeUnit.MILLISECONDS.sleep(sleepTime);
+                    TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
+                }
+                saveDb(wines);
+            } catch (Exception exception) {
+                eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
             }
-            saveDb(wines);
-        } catch (Exception exception) {
-            eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
-        }
 
-        eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
+            eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
+        }
     }
 
     public void saveDb(List<Product> wineDtoList) {
