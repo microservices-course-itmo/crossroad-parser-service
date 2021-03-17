@@ -39,11 +39,13 @@ public class ExportProductListJobTest {
     @Autowired
     private ParseService parseService;
 
+    @Ignore("Integration test")
     @Test
     public void parseFirstPageSparkling() {
         parseFirstPage(true);
     }
 
+    @Ignore("Integration test")
     @Test
     public void parseFirstPageNonSparkling() {
         parseFirstPage(false);
