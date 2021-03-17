@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 import javax.persistence.*;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 @ToString
 @Entity
 @Table(name = "wines")
@@ -21,6 +23,7 @@ public class Wine {
     @Id
     @Column(name = "id")
     @GeneratedValue
+    @EqualsAndHashCode.Exclude
     private Long id;
 
     @Column(name = "name")
@@ -138,57 +141,7 @@ public class Wine {
         this.rating = rating;
         this.sparkling = sparkling;
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Wine wine = (Wine) o;
-        return sparkling == wine.sparkling
-                && Objects.equals(name, wine.name)
-                && Objects.equals(oldPrice, wine.oldPrice)
-                && Objects.equals(newPrice, wine.newPrice)
-                && Objects.equals(link, wine.link)
-                && Objects.equals(image, wine.image)
-                && Objects.equals(manufacturer, wine.manufacturer)
-                && Objects.equals(brand, wine.brand)
-                && Objects.equals(country, wine.country)
-                && Objects.equals(capacity, wine.capacity)
-                && Objects.equals(strength, wine.strength)
-                && Objects.equals(color, wine.color)
-                && Objects.equals(sugar, wine.sugar)
-                && Objects.equals(year, wine.year)
-                && Objects.equals(description, wine.description)
-                && Objects.equals(gastronomy, wine.gastronomy)
-                && Objects.equals(taste, wine.taste)
-                && Objects.equals(flavor, wine.flavor)
-                && Objects.equals(rating, wine.rating);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                name,
-                oldPrice,
-                newPrice,
-                link,
-                image,
-                manufacturer,
-                brand,
-                country,
-                capacity,
-                strength,
-                color,
-                sugar,
-                year,
-                description,
-                gastronomy,
-                taste,
-                flavor,
-                rating,
-                sparkling);
-    }
-
+    
     public static Wine fromProduct(Product product) {
         return Wine.builder()
                 .name(product.getName())
