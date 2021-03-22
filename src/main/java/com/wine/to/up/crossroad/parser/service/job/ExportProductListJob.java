@@ -5,7 +5,6 @@ import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.constants.City;
-import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.util.Pair;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.context.event.EventListener;
 
 import java.util.*;
@@ -91,7 +89,7 @@ public class ExportProductListJob {
                     winesUrl.forEach(url -> winesUrlWithRegions.add(Pair.of(url, region)));
                 }
 
-                final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
+                final int batchesCount = (int) Math.ceil((float) winesUrlWithRegions.size() / BATCH_SIZE);
 
                 for (int i = 0; i < batchesCount; i++) {
                     final int fromIndex = i * BATCH_SIZE;

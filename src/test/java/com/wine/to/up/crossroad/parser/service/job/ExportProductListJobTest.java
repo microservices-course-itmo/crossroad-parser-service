@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
