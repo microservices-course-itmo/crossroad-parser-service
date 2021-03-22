@@ -4,6 +4,8 @@ import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
@@ -38,7 +40,7 @@ public class ExportProductListJob {
     public static final int SLEEP_AFTER_READY_SECONDS = 5;
     private static final int BATCH_SIZE = 20;
     private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 60;
-    @Value("${site.header.region}")
+    @Value("${site.header.regions}")
     private String[] regions;
 
     private final ProductService productService;
@@ -98,7 +100,13 @@ public class ExportProductListJob {
                     List<Product> winesBatch = winesUrlWithRegions
                             .subList(fromIndex, toIndex)
                             .parallelStream()
-                            .map(pair -> productService.parseWine(pair.getFirst(), pair.getSecond()))
+                            .map(pair -> {
+                                final String url = pair.getFirst();
+                                final String region = pair.getSecond();
+                                final Optional<Product> product = productService.parseWine(url, region);
+                                product.ifPresent(value -> value.setCity(City.resolve(Integer.parseInt(region)).getName()));
+                                return product;
+                            })
                             .filter(Optional::isPresent)
                             .map(Optional::get)
                             .collect(Collectors.toList());
@@ -192,6 +200,9 @@ public class ExportProductListJob {
             builder.setFlavor(wine.getFlavor());
         }
         builder.setRating(wine.getRating());
+        if (wine.getCity() != null) {
+            builder.setCity(wine.getCity());
+        }
         return builder.build();
     }
 
