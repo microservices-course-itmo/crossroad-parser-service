@@ -49,7 +49,7 @@ public class CrossroadParserServiceMetricsCollector extends CommonMetricsCollect
         ).increment();
     }
 
-    public void incWinesSentToKafka(int count) {
-        Metrics.counter(WINES_PUBLISHED_TO_KAFKA_COUNT).increment(count);
+    public void incWinesSentToKafka(String region) {
+        Metrics.counter(WINES_PUBLISHED_TO_KAFKA_COUNT, "city", region).increment();
     }
 }

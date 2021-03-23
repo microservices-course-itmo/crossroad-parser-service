@@ -53,9 +53,11 @@ public class ExportProductListJobTest {
 
     private void parseFirstPage(boolean parseSparkling) {
         final String parsingRegion = "2";
+        final String parsingRegionName = "Москва";
+
         List<String> winesUrlFromPage = requestsService
                 .getHtml(parseSparkling, parsingRegion, 1)
-                .map(parseService::parseUrlsCatalogPage)
+                .map((html) -> parseService.parseUrlsCatalogPage(html, parsingRegionName))
                 .orElse(Collections.emptyList());
         Assert.assertTrue(winesUrlFromPage.size() > 0);
 
@@ -63,7 +65,7 @@ public class ExportProductListJobTest {
                 .map(url -> requestsService.getItemHtml(url, parsingRegion))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(parseService::parseProductPage)
+                .map((html) -> parseService.parseProductPage(html, parsingRegionName))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());

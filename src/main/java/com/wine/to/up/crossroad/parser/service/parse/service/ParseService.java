@@ -4,6 +4,7 @@ import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Metrics;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.logstash.logback.encoder.org.apache.commons.lang.math.NumberUtils;
@@ -23,8 +24,8 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
  */
 @Slf4j
 public class ParseService {
-    private static final String WINE_DETAILS_PARSING_DURATION_SUMMARY = "wine_details_parsing_duration";
-    private static final String WINE_PAGE_PARSING_DURATION_SUMMARY = "wine_page_parsing_duration";
+    private static final String WINE_DETAILS_PARSING_DURATION_SUMMARY = "wine_details_parsing_duration_seconds";
+    private static final String WINE_PAGE_PARSING_DURATION_SUMMARY = "wine_page_parsing_duration_seconds";
 
     private static final String MANUFACTURER_NAME = "Производитель";
     private static final String BRAND_NAME = "Торговая марка";
@@ -140,111 +141,113 @@ public class ParseService {
      *
      * @return возвращает dto Optional<Product>
      */
-    @Timed(WINE_DETAILS_PARSING_DURATION_SUMMARY)
-    public Optional<Product> parseProductPage(@NonNull String html) {
-        Document document = Jsoup.parse(html);
+    public Optional<Product> parseProductPage(@NonNull String html, String region) {
+        return Metrics.timer(WINE_DETAILS_PARSING_DURATION_SUMMARY, "city", region)
+                .record(() -> {
+                    Document document = Jsoup.parse(html);
 
-        Product.ProductBuilder productBuilder = Product.builder();
+                    Product.ProductBuilder productBuilder = Product.builder();
 
-        Optional<String> wineNameO = Optional.ofNullable(
-                document
-                        .getElementsByClass("xf-product-new__title js-product__title js-product-new-title")
-                        .first()
-        )
-                .map(Element::text);
+                    Optional<String> wineNameO = Optional.ofNullable(
+                            document
+                                    .getElementsByClass("xf-product-new__title js-product__title js-product-new-title")
+                                    .first()
+                    )
+                            .map(Element::text);
 
-        if (wineNameO.isEmpty()) {
-            eventLogger.warn(W_WINE_DETAILS_PARSING_FAILED, html);
-            return Optional.empty();
-        }
-        String wineName = wineNameO.get();
-        productBuilder.name(wineName);
+                    if (wineNameO.isEmpty()) {
+                        eventLogger.warn(W_WINE_DETAILS_PARSING_FAILED, html);
+                        return Optional.empty();
+                    }
+                    String wineName = wineNameO.get();
+                    productBuilder.name(wineName);
 
-        Optional<Float> newPriceO = Optional.ofNullable(
-                document
-                        .getElementsByClass("js-product__cost")
-                        .first()
-        )
-                .map(element -> element.attr("data-cost"))
-                .filter(NumberUtils::isNumber)
-                .map(Float::parseFloat);
-        if (newPriceO.isEmpty()) {
-            return Optional.empty();
-        }
-        productBuilder.newPrice(newPriceO.get());
+                    Optional<Float> newPriceO = Optional.ofNullable(
+                            document
+                                    .getElementsByClass("js-product__cost")
+                                    .first()
+                    )
+                            .map(element -> element.attr("data-cost"))
+                            .filter(NumberUtils::isNumber)
+                            .map(Float::parseFloat);
+                    if (newPriceO.isEmpty()) {
+                        return Optional.empty();
+                    }
+                    productBuilder.newPrice(newPriceO.get());
 
-        Optional.ofNullable(
-                document
-                        .getElementsByClass("js-product__old-cost")
-                        .first()
-        )
-                .map(element -> element.attr("data-cost"))
-                .filter(NumberUtils::isNumber)
-                .map(Float::parseFloat)
-                .ifPresentOrElse(
-                        productBuilder::oldPrice,
-                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "old price", "", wineName)
-                );
+                    Optional.ofNullable(
+                            document
+                                    .getElementsByClass("js-product__old-cost")
+                                    .first()
+                    )
+                            .map(element -> element.attr("data-cost"))
+                            .filter(NumberUtils::isNumber)
+                            .map(Float::parseFloat)
+                            .ifPresentOrElse(
+                                    productBuilder::oldPrice,
+                                    () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "old price", "", wineName)
+                            );
 
-        Optional.ofNullable(
-                document
-                        .getElementsByClass("xf-product-new-about-section__description")
-                        .first()
-        )
-                .map(Element::text)
-                .ifPresentOrElse(description -> {
-                            productBuilder.description(description);
-                            if (description.toLowerCase().contains("игрист")
-                                    || description.toLowerCase().contains("шампанск")
-                                    || wineName.toLowerCase().contains("игрист")
-                                    || wineName.toLowerCase().contains("шампанск"))
-                            {
-                                productBuilder.sparkling(true);
-                            }
-                        },
-                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "description and sparkling", "", wineName)
-                );
+                    Optional.ofNullable(
+                            document
+                                    .getElementsByClass("xf-product-new-about-section__description")
+                                    .first()
+                    )
+                            .map(Element::text)
+                            .ifPresentOrElse(description -> {
+                                        productBuilder.description(description);
+                                        if (description.toLowerCase().contains("игрист")
+                                                || description.toLowerCase().contains("шампанск")
+                                                || wineName.toLowerCase().contains("игрист")
+                                                || wineName.toLowerCase().contains("шампанск"))
+                                        {
+                                            productBuilder.sparkling(true);
+                                        }
+                                    },
+                                    () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "description and sparkling", "", wineName)
+                            );
 
-        Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
-        properties.forEach(property -> processProductProperty(wineName, productBuilder, property));
+                    Elements properties = document.getElementsByClass("xf-product-new-about-section__property");
+                    properties.forEach(property -> processProductProperty(wineName, productBuilder, property));
 
-        Optional.ofNullable(
-                document
-                        .getElementsByClass("xf-product-new__rating  js-link-scroll ")
-                        .first()
-        )
-                .map(element -> element.getElementsByClass("xf-product-new__rating__star  _active "))
-                .map(ArrayList::size)
-                .map(Float::valueOf)
-                .ifPresentOrElse(
-                        productBuilder::rating,
-                        () -> eventLogger.error(W_FIELD_PARSING_FAILED, "rating", "", wineName)
-                );
+                    Optional.ofNullable(
+                            document
+                                    .getElementsByClass("xf-product-new__rating  js-link-scroll ")
+                                    .first()
+                    )
+                            .map(element -> element.getElementsByClass("xf-product-new__rating__star  _active "))
+                            .map(ArrayList::size)
+                            .map(Float::valueOf)
+                            .ifPresentOrElse(
+                                    productBuilder::rating,
+                                    () -> eventLogger.error(W_FIELD_PARSING_FAILED, "rating", "", wineName)
+                            );
 
-        Optional.ofNullable(
-                document
-                        .getElementsByAttributeValue("rel", "canonical")
-                        .first()
-        )
-                .map(element -> element.attr("href"))
-                .ifPresentOrElse(
-                        productBuilder::link,
-                        () -> eventLogger.error(W_FIELD_PARSING_FAILED, "link", "", wineName)
-                );
+                    Optional.ofNullable(
+                            document
+                                    .getElementsByAttributeValue("rel", "canonical")
+                                    .first()
+                    )
+                            .map(element -> element.attr("href"))
+                            .ifPresentOrElse(
+                                    productBuilder::link,
+                                    () -> eventLogger.error(W_FIELD_PARSING_FAILED, "link", "", wineName)
+                            );
 
-        Optional.ofNullable(
-                document.getElementsByClass("xf-product-new-card__image-block")
-                        .first()
-        )
-                .map(element -> element.selectFirst("img[itemprop=image]"))
-                .map(element -> element.getElementsByAttributeValue("itemprop", "image"))
-                .map(elements -> elements.attr("src"))
-                .ifPresentOrElse(
-                        partUrl -> productBuilder.image(baseUrl + partUrl),
-                        () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
-                );
-        eventLogger.info(I_WINE_DETAILS_PARSED, wineName);
-        return Optional.of(productBuilder.build());
+                    Optional.ofNullable(
+                            document.getElementsByClass("xf-product-new-card__image-block")
+                                    .first()
+                    )
+                            .map(element -> element.selectFirst("img[itemprop=image]"))
+                            .map(element -> element.getElementsByAttributeValue("itemprop", "image"))
+                            .map(elements -> elements.attr("src"))
+                            .ifPresentOrElse(
+                                    partUrl -> productBuilder.image(baseUrl + partUrl),
+                                    () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
+                            );
+                    eventLogger.info(I_WINE_DETAILS_PARSED, wineName);
+                    return Optional.of(productBuilder.build());
+                });
     }
 
     /**
@@ -252,25 +255,27 @@ public class ParseService {
      *
      * @return список ссылок на страницы вин
      */
-    @Timed(WINE_PAGE_PARSING_DURATION_SUMMARY)
-    public List<String> parseUrlsCatalogPage(String html) {
-        List<String> productsUrls = new ArrayList<>();
-        Document document = Jsoup.parse(html);
-        Optional.ofNullable(document.select(".xf-catalog__item"))
-                .ifPresentOrElse(
-                        elements -> {
-                            elements.forEach(item -> {
-                                if (item.childrenSize() > 0) {
-                                    parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
-                                }
-                            });
-                            log.info("Found {} urls on a page", elements.size());
+    public List<String> parseUrlsCatalogPage(String html, String region) {
+        return Metrics.timer(WINE_PAGE_PARSING_DURATION_SUMMARY, "city", region)
+                .record(() -> {
+                    List<String> productsUrls = new ArrayList<>();
+                    Document document = Jsoup.parse(html);
+                    Optional.ofNullable(document.select(".xf-catalog__item"))
+                            .ifPresentOrElse(
+                                    elements -> {
+                                        elements.forEach(item -> {
+                                            if (item.childrenSize() > 0) {
+                                                parseProductCardAndGetUrl(item.child(0)).ifPresent(productsUrls::add);
+                                            }
+                                        });
+                                        log.info("Found {} urls on a page", elements.size());
 
-                        },
-                        () -> eventLogger.warn(W_WINE_PAGE_PARSING_FAILED, html));
+                                    },
+                                    () -> eventLogger.warn(W_WINE_PAGE_PARSING_FAILED, html));
 
 
-        return Collections.unmodifiableList(productsUrls);
+                    return Collections.unmodifiableList(productsUrls);
+                });
     }
 
     /**

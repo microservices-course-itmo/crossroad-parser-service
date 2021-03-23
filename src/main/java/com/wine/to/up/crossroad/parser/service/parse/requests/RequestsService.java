@@ -6,6 +6,8 @@ import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -32,8 +34,8 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Setter
 @ToString
 public class RequestsService {
-    private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration";
-    private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration";
+    private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration_seconds";
+    private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration_seconds";
     private static final String REGION_PARAMETER = "region";
 
     private final String baseUrl;
@@ -117,14 +119,15 @@ public class RequestsService {
         }
     }
 
-    @Timed(WINE_PAGE_FETCHING_DURATION_SUMMARY)
     public Optional<String> getHtml(boolean sparkling, String region, int page) {
-        Optional<CatalogResponsePojo> result = getJson(sparkling, region, page);
+        Optional<CatalogResponsePojo> result = Metrics.timer(WINE_PAGE_FETCHING_DURATION_SUMMARY, "city", region)
+                .record(() -> getJson(sparkling, region, page));
+
         return result.map(CatalogResponsePojo::getHtml);
     }
 
-    @Timed(WINE_DETAILS_FETCHING_DURATION_SUMMARY)
     public Optional<String> getItemHtml(String url, String region) {
-        return getByUrl(baseUrl + url, region);
+        return Metrics.timer(WINE_DETAILS_FETCHING_DURATION_SUMMARY, "city", region)
+                .record(() -> getByUrl(baseUrl + url, region));
     }
 }
