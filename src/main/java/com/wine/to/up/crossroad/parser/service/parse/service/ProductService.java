@@ -126,7 +126,7 @@ public class ProductService {
     }
 
     private List<Product> getParsedWines(List<String> winesUrl) {
-        return winesUrl.parallelStream()
+        return winesUrl.stream()
                 .map(requestsService::getItemHtml)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
