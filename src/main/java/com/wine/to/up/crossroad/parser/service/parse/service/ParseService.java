@@ -244,6 +244,8 @@ public class ParseService {
                         () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
                 );
         eventLogger.info(I_WINE_DETAILS_PARSED, wineName);
+        document = null;
+        System.gc();
         return Optional.of(productBuilder.build());
     }
 
