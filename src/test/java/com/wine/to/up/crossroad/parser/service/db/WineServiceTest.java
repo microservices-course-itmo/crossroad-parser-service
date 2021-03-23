@@ -2,23 +2,37 @@ package com.wine.to.up.crossroad.parser.service.db;
 
 import com.wine.to.up.crossroad.parser.service.db.entities.Wine;
 import com.wine.to.up.crossroad.parser.service.db.services.WineService;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@RunWith(SpringRunner.class)
-@Ignore("Integration test")
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+
 @SpringBootTest
 public class WineServiceTest {
-    @Autowired
-    WineService wineService;
+
+    private WineService wineService;
+
+    @Before
+    public void init() {
+        Wine wine = Wine.builder()
+                .name("wine")
+                .color("red")
+                .region(Set.of("1", "2"))
+                .build();
+        wineService = mock(WineService.class);
+        doNothing().when(wineService).save(isA(Wine.class));
+        doAnswer(invocation -> Collections.singletonList(wine)).when(wineService).findAll();
+    }
 
     @Test
     public void findAll() {
