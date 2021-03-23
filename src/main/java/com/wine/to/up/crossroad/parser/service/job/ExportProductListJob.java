@@ -88,7 +88,7 @@ public class ExportProductListJob {
 
                     List<Product> winesBatch = winesUrl
                             .subList(fromIndex, toIndex)
-                            .parallelStream()
+                            .stream()
                             .map(productService::parseWine)
                             .filter(Optional::isPresent)
                             .map(Optional::get)
