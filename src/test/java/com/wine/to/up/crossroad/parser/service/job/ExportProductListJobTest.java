@@ -1,6 +1,5 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
-import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
@@ -8,8 +7,8 @@ import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.helper.Validate;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,14 +52,15 @@ public class ExportProductListJobTest {
     }
 
     private void parseFirstPage(boolean parseSparkling) {
+        final String parsingRegion = "2";
         List<String> winesUrlFromPage = requestsService
-                .getHtml(parseSparkling, 1)
+                .getHtml(parseSparkling, parsingRegion, 1)
                 .map(parseService::parseUrlsCatalogPage)
                 .orElse(Collections.emptyList());
         Assert.assertTrue(winesUrlFromPage.size() > 0);
 
         List<Product> wines = winesUrlFromPage.parallelStream()
-                .map(requestsService::getItemHtml)
+                .map(url -> requestsService.getItemHtml(url, parsingRegion))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(parseService::parseProductPage)

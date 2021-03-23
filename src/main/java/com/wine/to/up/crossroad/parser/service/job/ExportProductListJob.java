@@ -4,6 +4,7 @@ import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.db.constants.Color;
 import com.wine.to.up.crossroad.parser.service.db.constants.Sugar;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
@@ -11,8 +12,10 @@ import com.wine.to.up.crossroad.parser.service.db.services.WineService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
 import com.wine.to.up.parser.common.api.schema.ParserApi;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.util.Pair;
 import org.springframework.context.event.EventListener;
 
 import java.util.*;
@@ -35,6 +38,8 @@ public class ExportProductListJob {
     public static final int SLEEP_AFTER_READY_SECONDS = 5;
     private static final int BATCH_SIZE = 20;
     private static final int SLEEP_TIME_BETWEEN_BATCH_SECONDS = 60;
+    @Value("${site.header.regions}")
+    private String[] regions;
 
     private final ProductService productService;
     private final KafkaMessageSender<ParserApi.WineParsedEvent> kafkaSendMessageService;
@@ -77,19 +82,29 @@ public class ExportProductListJob {
         while (true) {
             try {
                 List<Product> wines = new ArrayList<>();
-                List<String> winesUrl = productService.getWinesUrl(false);
-                winesUrl.addAll(productService.getWinesUrl(true));
+                List<Pair<String, String>> winesUrlWithRegions = new ArrayList<>();
+                for (final String region: regions) {
+                    List<String> winesUrl = productService.getWinesUrl(false, region);
+                    winesUrl.addAll(productService.getWinesUrl(true, region));
+                    winesUrl.forEach(url -> winesUrlWithRegions.add(Pair.of(url, region)));
+                }
 
-                final int batchesCount = (int) Math.ceil((float) winesUrl.size() / BATCH_SIZE);
+                final int batchesCount = (int) Math.ceil((float) winesUrlWithRegions.size() / BATCH_SIZE);
 
                 for (int i = 0; i < batchesCount; i++) {
                     final int fromIndex = i * BATCH_SIZE;
-                    final int toIndex = Math.min(winesUrl.size(), (i + 1) * BATCH_SIZE);
+                    final int toIndex = Math.min(winesUrlWithRegions.size(), (i + 1) * BATCH_SIZE);
 
-                    List<Product> winesBatch = winesUrl
+                    List<Product> winesBatch = winesUrlWithRegions
                             .subList(fromIndex, toIndex)
                             .parallelStream()
-                            .map(productService::parseWine)
+                            .map(pair -> {
+                                final String url = pair.getFirst();
+                                final String region = pair.getSecond();
+                                final Optional<Product> product = productService.parseWine(url, region);
+                                product.ifPresent(value -> value.setCity(City.resolve(Integer.parseInt(region)).getName()));
+                                return product;
+                            })
                             .filter(Optional::isPresent)
                             .map(Optional::get)
                             .collect(Collectors.toList());
@@ -183,6 +198,9 @@ public class ExportProductListJob {
             builder.setFlavor(wine.getFlavor());
         }
         builder.setRating(wine.getRating());
+        if (wine.getCity() != null) {
+            builder.setCity(wine.getCity());
+        }
         return builder.build();
     }
 

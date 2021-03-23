@@ -40,4 +40,5 @@ public class Product {
     private String flavor;
     private Float rating;
     private boolean sparkling;
+    private String city;
 }
