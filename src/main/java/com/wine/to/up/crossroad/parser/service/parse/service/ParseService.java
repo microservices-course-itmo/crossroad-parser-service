@@ -233,7 +233,7 @@ public class ParseService {
                                     productBuilder::link,
                                     () -> eventLogger.error(W_FIELD_PARSING_FAILED, "link", "", wineName)
                             );
-
+                  
                     Optional.ofNullable(
                             document.getElementsByClass("xf-product-new-card__image-block")
                                     .first()
@@ -246,6 +246,8 @@ public class ParseService {
                                     () -> eventLogger.warn(W_FIELD_PARSING_FAILED, "image url", "", wineName)
                             );
                     eventLogger.info(I_WINE_DETAILS_PARSED, wineName);
+                    document = null;
+                    System.gc();
                     return Optional.of(productBuilder.build());
                 });
     }

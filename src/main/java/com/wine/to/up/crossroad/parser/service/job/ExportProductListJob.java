@@ -87,6 +87,7 @@ public class ExportProductListJob {
                     List<String> winesUrl = productService.getWinesUrl(false, region);
                     winesUrl.addAll(productService.getWinesUrl(true, region));
                     winesUrl.forEach(url -> winesUrlWithRegions.add(Pair.of(url, region)));
+                    winesUrl = null;
                 }
 
                 final int batchesCount = (int) Math.ceil((float) winesUrlWithRegions.size() / BATCH_SIZE);
@@ -123,6 +124,8 @@ public class ExportProductListJob {
                     TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
                 }
                 saveDb(wines);
+                wines = null;
+                System.gc();
             } catch (Exception exception) {
                 eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
             }
