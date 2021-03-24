@@ -61,14 +61,14 @@ public class ParseServiceTest {
         ParseService parseService = mock(ParseService.class);
         doAnswer(invocation -> getTestUrls()).when(parseService).parseUrlsCatalogPage(isA(String.class), isA(String.class));
         String content = new String(Files.readAllBytes(Paths.get(CATALOG_FILE_PATH)));
-        List<String> urls = parseService.parseUrlsCatalogPage(content, "Москва");
+        List<String> urls = parseService.parseUrlsCatalogPage(content, "2");
         Assert.assertEquals(30, urls.size());
     }
 
     @Test
     public void parseWineTest() throws IOException {
         String content = new String(Files.readAllBytes(Paths.get(WINE_FILE_PATH)));
-        Optional<Product> productO = parseService.parseProductPage(content, "Москва");
+        Optional<Product> productO = parseService.parseProductPage(content, "2");
         Assert.assertTrue(productO.isPresent());
     }
 }
