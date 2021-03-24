@@ -21,16 +21,16 @@ import org.springframework.context.annotation.PropertySource;
 public class ParserConfiguration {
     @Value("${site.connect.timeout}")
     private int timeout;
-    @Value("${site.header.region}")
-    private String region;
     @Value("${site.base.url}")
     private String baseUrl;
     @Value("${site.user.agent}")
     private String userAgent;
+    @Value("${site.default_region}")
+    private String defaultRegion;
 
     @Bean
     RequestsService requestsService() {
-        return new RequestsService(baseUrl, userAgent, timeout, region);
+        return new RequestsService(baseUrl, userAgent, timeout, defaultRegion);
     }
 
     @Bean
@@ -40,6 +40,6 @@ public class ParserConfiguration {
 
     @Bean
     ProductService productService(ParseService parseService, RequestsService requestsService, CrossroadParserServiceMetricsCollector metricsCollector) {
-        return new ProductService(parseService, requestsService, metricsCollector);
+        return new ProductService(parseService, requestsService, metricsCollector, defaultRegion);
     }
 }

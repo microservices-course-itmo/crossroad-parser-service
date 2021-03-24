@@ -4,8 +4,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -34,24 +37,24 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 public class RequestsService {
     private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration";
     private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration";
-    private static final String HEADER_REGION = "region";
+    private static final String REGION_PARAMETER = "region";
 
     private final String baseUrl;
     private final String userAgent;
     private final int timeout;
-    private final String region;
+    private final String defaultRegion;
 
     @InjectEventLogger
     private EventLogger eventLogger;
 
-    public RequestsService(String baseUrl, String userAgent, int timeout, String region) {
+    public RequestsService(String baseUrl, String userAgent, int timeout, String defaultRegion) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
-        this.region = region;
+        this.defaultRegion = defaultRegion;
     }
 
-    private Optional<String> getByUrl(String url) {
+    private Optional<String> getByUrl(String url, String region) {
         try {
             RequestConfig config = RequestConfig.custom()
                     .setConnectTimeout(timeout)
@@ -65,7 +68,7 @@ public class RequestsService {
                     .build();
 
             URIBuilder builder = new URIBuilder(url);
-            builder.setParameter(HEADER_REGION, region);
+            builder.setParameter(REGION_PARAMETER, region);
             HttpGet request = new HttpGet(builder.build());
 
             request.setHeader(HttpHeaders.USER_AGENT, userAgent);
@@ -96,15 +99,15 @@ public class RequestsService {
     }
 
     public Optional<CatalogResponsePojo> getJson(int page) {
-        return getJson(false, page);
+        return getJson(false, defaultRegion, page);
     }
 
-    public Optional<CatalogResponsePojo> getJson(boolean sparkling, int page) {
+    public Optional<CatalogResponsePojo> getJson(boolean sparkling, String region, int page) {
         String relativeUrl = sparkling
                 ? "/catalog/alkogol/shampanskoe-igristye-vina"
                 : "/catalog/alkogol/vino";
         String url = baseUrl + relativeUrl + String.format("?ajax=true&page=%d", page);
-        Optional<String> json = getByUrl(url);
+        Optional<String> json = getByUrl(url, region);
         if (json.isPresent()) {
             try {
                 CatalogResponsePojo result = new ObjectMapper().readValue(json.get(), CatalogResponsePojo.class);
@@ -119,14 +122,15 @@ public class RequestsService {
         }
     }
 
-    @Timed(WINE_PAGE_FETCHING_DURATION_SUMMARY)
-    public Optional<String> getHtml(boolean sparkling, int page) {
-        Optional<CatalogResponsePojo> result = getJson(sparkling, page);
+    public Optional<String> getHtml(boolean sparkling, String regionId, int page) {
+        Optional<CatalogResponsePojo> result = Metrics.timer(WINE_PAGE_FETCHING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
+                .record(() -> getJson(sparkling, regionId, page));
+
         return result.map(CatalogResponsePojo::getHtml);
     }
 
-    @Timed(WINE_DETAILS_FETCHING_DURATION_SUMMARY)
-    public Optional<String> getItemHtml(String url) {
-        return getByUrl(baseUrl + url);
+    public Optional<String> getItemHtml(String url, String regionId) {
+        return Metrics.timer(WINE_DETAILS_FETCHING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
+                .record(() -> getByUrl(baseUrl + url, regionId));
     }
 }

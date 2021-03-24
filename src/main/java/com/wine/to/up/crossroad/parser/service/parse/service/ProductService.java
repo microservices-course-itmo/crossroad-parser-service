@@ -36,6 +36,7 @@ public class ProductService {
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
+    private final String defaultRegion;
 
     private final AtomicInteger parsingInProgress = new AtomicInteger(0);
     private final AtomicLong lastSucceededParsingTime = new AtomicLong(0);
@@ -45,11 +46,13 @@ public class ProductService {
 
     public ProductService(ParseService parseService,
                           RequestsService requestsService,
-                          CrossroadParserServiceMetricsCollector metricsCollector)
+                          CrossroadParserServiceMetricsCollector metricsCollector,
+                          String defaultRegion)
     {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
+        this.defaultRegion = defaultRegion;
 
         Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
         Metrics.gauge(
@@ -65,9 +68,9 @@ public class ProductService {
             parsingInProgress.incrementAndGet();
             metricsCollector.incParsingStarted();
 
-            List<String> winesUrl = getWinesUrl(false);
-            winesUrl.addAll(getWinesUrl(true));
-            List<Product> wines = getParsedWines(winesUrl);
+            List<String> winesUrl = getWinesUrl(false, defaultRegion);
+            winesUrl.addAll(getWinesUrl(true, defaultRegion));
+            List<Product> wines = getParsedWines(winesUrl, defaultRegion);
 
             log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
 
@@ -91,16 +94,17 @@ public class ProductService {
         btcsv.write(products);
     }
 
-    public List<String> getWinesUrl(boolean sparkling) {
+    public List<String> getWinesUrl(boolean sparkling, String region) {
         List<String> winesUrl = new ArrayList<>();
 
-        requestsService.getJson(sparkling,1).ifPresent(pojo -> {
+        requestsService.getJson(sparkling, region, 1).ifPresent(pojo -> {
             int pages = getPages(pojo);
             for (int i = 1; i <= pages; i++) {
                 List<String> winesUrlFromPage = requestsService
-                        .getHtml(sparkling, i)
-                        .map(parseService::parseUrlsCatalogPage)
+                        .getHtml(sparkling, region, i)
+                        .map((w) -> parseService.parseUrlsCatalogPage(w, region))
                         .orElse(Collections.emptyList());
+
                 if (winesUrlFromPage.isEmpty()) {
                     eventLogger.warn(W_PARSED_BUT_NO_URLS, i);
                 }
@@ -116,21 +120,21 @@ public class ProductService {
         return (int) Math.ceil((double) pojo.getCount() / 30);
     }
 
-    public Optional<Product> parseWine(String wineUrl) {
-        Optional<String> html = requestsService.getItemHtml(wineUrl);
+    public Optional<Product> parseWine(String wineUrl, String regionId) {
+        Optional<String> html = requestsService.getItemHtml(wineUrl, regionId);
         if (html.isEmpty()) {
             return Optional.empty();
         }
 
-        return parseService.parseProductPage(html.get());
+        return parseService.parseProductPage(html.get(), regionId);
     }
 
-    private List<Product> getParsedWines(List<String> winesUrl) {
+    private List<Product> getParsedWines(List<String> winesUrl, String regionId) {
         return winesUrl.parallelStream()
-                .map(requestsService::getItemHtml)
+                .map(url -> requestsService.getItemHtml(url, regionId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(parseService::parseProductPage)
+                .map((html) -> parseService.parseProductPage(html, regionId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());

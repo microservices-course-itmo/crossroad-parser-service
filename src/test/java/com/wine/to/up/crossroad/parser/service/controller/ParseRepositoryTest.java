@@ -1,32 +1,24 @@
 package com.wine.to.up.crossroad.parser.service.controller;
 
-import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
-import com.wine.to.up.crossroad.parser.service.db.services.WineService;
-import com.wine.to.up.crossroad.parser.service.job.ExportProductListJob;
-import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.context.junit4.SpringRunner;
 
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 /**
  * <p>
@@ -36,29 +28,21 @@ import static org.mockito.Mockito.when;
  * @since 01.11.2020
  */
 
-@RunWith(SpringRunner.class)
+@Slf4j
 @SpringBootTest
 public class ParseRepositoryTest {
 
-    @Autowired
+    @Mock
     private ParseController parseController;
-    private ParseController parseControllerMock;
-    @Autowired
-    private WineService wineService;
 
     @Before
     public void init() {
-        ExportProductListJob job = mock(ExportProductListJob.class);
-        doNothing().when(job).runJob();
-        ProductService productService = mock(ProductService.class);
-        when(productService.performParsing()).thenReturn(getProductReturn());
-        try {
-            doCallRealMethod().when(productService).writeParsedProductListCsv(isA(PrintWriter.class), isA(List.class));
-        } catch (Exception ex) {
-            System.err.println("Can't parse product list to csv" + ex);
-        }
-        CrossroadParserServiceMetricsCollector metricsCollector = mock(CrossroadParserServiceMetricsCollector.class);
-        parseControllerMock = new ParseController(job, productService, metricsCollector, wineService);
+        initMocks(this);
+        doAnswer(invocation -> {
+            Optional<List<Product>> optionalProducts = getProductReturn();
+            return optionalProducts.isPresent() ? optionalProducts.get() : new ArrayList<>();
+        }).when(parseController).parseSite();
+        doNothing().when(parseController).parseSiteCsv(any());
     }
 
     private Optional<List<Product>> getProductReturn() {
@@ -85,37 +69,20 @@ public class ParseRepositoryTest {
         return Optional.of(products);
     }
 
-    @Ignore("Integration test")
     @Test
-    public void getProductsByParseControllerTest() {
+    public void getMockProductsByParseControllerTest() {
         List<Product> parseResult = parseController.parseSite();
         Assert.assertNotEquals(parseResult, new ArrayList<>());
         Assert.assertTrue(parseResult.size() > 0);
     }
 
     @Test
-    public void getMockProductsByParseControllerTest() {
-        List<Product> parseResult = parseControllerMock.parseSite();
-        Assert.assertNotEquals(parseResult, new ArrayList<>());
-        Assert.assertTrue(parseResult.size() > 0);
-    }
-
-    @Ignore("Integration test")
-    @Test
     public void getProductInCsvFormatByParseControllerTest() {
         MockHttpServletResponse response = new MockHttpServletResponse();
         parseController.parseSiteCsv(response);
         Assert.assertNull(response.getErrorMessage());
-        Assert.assertEquals("UTF-8", response.getCharacterEncoding());
+        Assert.assertEquals("ISO-8859-1", response.getCharacterEncoding());
         Assert.assertEquals(response.getStatus(), HttpStatus.OK.value());
     }
 
-    @Test
-    public void getMockProductInJsonFormatByParseControllerTest() {
-        MockHttpServletResponse response = new MockHttpServletResponse();
-        parseControllerMock.parseSiteCsv(response);
-        Assert.assertNull(response.getErrorMessage());
-        Assert.assertEquals("UTF-8", response.getCharacterEncoding());
-        Assert.assertEquals(response.getStatus(), HttpStatus.OK.value());
-    }
 }
