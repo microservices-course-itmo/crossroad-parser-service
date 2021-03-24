@@ -60,7 +60,7 @@ public class ParseController {
             notes = "Возвращает результат парсинга сайта в формате JSON")
     public List<Product> parseSite() {
         List<Product> wines = wineService.findAllProducts();
-        if (wines.size() == 0) {
+        if (wines.isEmpty()) {
             log.info("Db was empty, so perform parsing");
             wines = productService.performParsing().orElse(Collections.emptyList());
         }
@@ -74,7 +74,7 @@ public class ParseController {
     public void parseSiteCsv(HttpServletResponse response) {
         response.setCharacterEncoding("UTF-8");
         List<Product> wines = wineService.findAllProducts();
-        if (wines.size() == 0) {
+        if (wines.isEmpty()) {
             log.info("Db was empty, so perform parsing");
             wines = productService.performParsing().orElse(Collections.emptyList());
         }
