@@ -59,7 +59,7 @@ public class ParseServiceTest {
     @Test
     public void parseCatalogTest() throws IOException {
         ParseService parseService = mock(ParseService.class);
-        doAnswer(invocation -> getTestUrls()).when(parseService).parseUrlsCatalogPage(isA(String.class));
+        doAnswer(invocation -> getTestUrls()).when(parseService).parseUrlsCatalogPage(isA(String.class), isA(String.class));
         String content = new String(Files.readAllBytes(Paths.get(CATALOG_FILE_PATH)));
         List<String> urls = parseService.parseUrlsCatalogPage(content, "Москва");
         Assert.assertEquals(30, urls.size());
