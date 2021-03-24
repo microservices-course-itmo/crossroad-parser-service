@@ -77,59 +77,58 @@ public class ExportProductListJob {
         }
 
         long startTime = new Date().getTime();
-        eventLogger.info(I_START_JOB, startTime);
 
         while (true) {
-            try {
-                List<Product> wines = new ArrayList<>();
-                List<Pair<String, String>> winesUrlWithRegions = new ArrayList<>();
-                for (final String region: regions) {
+            eventLogger.info(I_START_JOB, startTime);
+            for (final String region : regions) {
+                try {
+                    List<Product> wines = new ArrayList<>();
+                    List<Pair<String, String>> winesUrlWithRegions = new ArrayList<>();
                     List<String> winesUrl = productService.getWinesUrl(false, region);
                     winesUrl.addAll(productService.getWinesUrl(true, region));
                     winesUrl.forEach(url -> winesUrlWithRegions.add(Pair.of(url, region)));
                     winesUrl = null;
+
+                    final int batchesCount = (int) Math.ceil((float) winesUrlWithRegions.size() / BATCH_SIZE);
+
+                    for (int i = 0; i < batchesCount; i++) {
+                        final int fromIndex = i * BATCH_SIZE;
+                        final int toIndex = Math.min(winesUrlWithRegions.size(), (i + 1) * BATCH_SIZE);
+
+                        List<Product> winesBatch = winesUrlWithRegions
+                                .subList(fromIndex, toIndex)
+                                .parallelStream()
+                                .map(pair -> {
+                                    final String url = pair.getFirst();
+                                    final String region = pair.getSecond();
+                                    final Optional<Product> product = productService.parseWine(url, region);
+                                    product.ifPresent(value -> {
+                                        value.setCity(City.resolve(Integer.parseInt(region)).getName());
+                                        metricsCollector.incWinesSentToKafka(region);
+                                    });
+                                    return product;
+                                })
+                                .filter(Optional::isPresent)
+                                .map(Optional::get)
+                                .collect(Collectors.toList());
+                        wines.addAll(winesBatch);
+
+                        ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
+                                .setShopLink(SHOP_LINK)
+                                .addAllWines(winesBatch.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
+                                .build();
+
+                        kafkaSendMessageService.sendMessage(message);
+
+                        TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
+                    }
+                    saveDb(wines);
+                    wines = null;
+                    System.gc();
+                } catch (Exception exception) {
+                    eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
                 }
-
-                final int batchesCount = (int) Math.ceil((float) winesUrlWithRegions.size() / BATCH_SIZE);
-
-                for (int i = 0; i < batchesCount; i++) {
-                    final int fromIndex = i * BATCH_SIZE;
-                    final int toIndex = Math.min(winesUrlWithRegions.size(), (i + 1) * BATCH_SIZE);
-
-                    List<Product> winesBatch = winesUrlWithRegions
-                            .subList(fromIndex, toIndex)
-                            .parallelStream()
-                            .map(pair -> {
-                                final String url = pair.getFirst();
-                                final String region = pair.getSecond();
-                                final Optional<Product> product = productService.parseWine(url, region);
-                                product.ifPresent(value -> {
-                                    value.setCity(City.resolve(Integer.parseInt(region)).getName());
-                                    metricsCollector.incWinesSentToKafka(region);
-                                });
-                                return product;
-                            })
-                            .filter(Optional::isPresent)
-                            .map(Optional::get)
-                            .collect(Collectors.toList());
-                    wines.addAll(winesBatch);
-
-                    ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
-                            .setShopLink(SHOP_LINK)
-                            .addAllWines(winesBatch.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
-                            .build();
-
-                    kafkaSendMessageService.sendMessage(message);
-
-                    TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
-                }
-                saveDb(wines);
-                wines = null;
-                System.gc();
-            } catch (Exception exception) {
-                eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
             }
-
             eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
         }
     }
