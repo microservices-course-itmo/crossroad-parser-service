@@ -25,10 +25,12 @@ public class ParserConfiguration {
     private String baseUrl;
     @Value("${site.user.agent}")
     private String userAgent;
+    @Value("${site.default_region}")
+    private String defaultRegion;
 
     @Bean
     RequestsService requestsService() {
-        return new RequestsService(baseUrl, userAgent, timeout);
+        return new RequestsService(baseUrl, userAgent, timeout, defaultRegion);
     }
 
     @Bean
@@ -38,6 +40,6 @@ public class ParserConfiguration {
 
     @Bean
     ProductService productService(ParseService parseService, RequestsService requestsService, CrossroadParserServiceMetricsCollector metricsCollector) {
-        return new ProductService(parseService, requestsService, metricsCollector);
+        return new ProductService(parseService, requestsService, metricsCollector, defaultRegion);
     }
 }

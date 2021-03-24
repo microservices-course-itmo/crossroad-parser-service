@@ -36,6 +36,7 @@ public class ProductService {
     private final ParseService parseService;
     private final RequestsService requestsService;
     private final CrossroadParserServiceMetricsCollector metricsCollector;
+    private final String defaultRegion;
 
     private final AtomicInteger parsingInProgress = new AtomicInteger(0);
     private final AtomicLong lastSucceededParsingTime = new AtomicLong(0);
@@ -45,11 +46,13 @@ public class ProductService {
 
     public ProductService(ParseService parseService,
                           RequestsService requestsService,
-                          CrossroadParserServiceMetricsCollector metricsCollector)
+                          CrossroadParserServiceMetricsCollector metricsCollector,
+                          String defaultRegion)
     {
         this.parseService = Objects.requireNonNull(parseService, "Can't get parseService");
         this.requestsService = Objects.requireNonNull(requestsService, "Can't get requestsService");
         this.metricsCollector = Objects.requireNonNull(metricsCollector, "Can't get metricsCollector");
+        this.defaultRegion = defaultRegion;
 
         Metrics.gauge(PARSING_IN_PROGRESS_GAUGE, parsingInProgress);
         Metrics.gauge(
@@ -65,9 +68,9 @@ public class ProductService {
             parsingInProgress.incrementAndGet();
             metricsCollector.incParsingStarted();
 
-            List<String> winesUrl = getWinesUrl(false, "2");
-            winesUrl.addAll(getWinesUrl(true, "2"));
-            List<Product> wines = getParsedWines(winesUrl, "2");
+            List<String> winesUrl = getWinesUrl(false, defaultRegion);
+            winesUrl.addAll(getWinesUrl(true, defaultRegion));
+            List<Product> wines = getParsedWines(winesUrl, defaultRegion);
 
             log.info("Collected url to {} wines and successfully parsed {}", winesUrl.size(), wines.size());
 

@@ -42,14 +42,16 @@ public class RequestsService {
     private final String baseUrl;
     private final String userAgent;
     private final int timeout;
+    private final String defaultRegion;
 
     @InjectEventLogger
     private EventLogger eventLogger;
 
-    public RequestsService(String baseUrl, String userAgent, int timeout) {
+    public RequestsService(String baseUrl, String userAgent, int timeout, String defaultRegion) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
+        this.defaultRegion = defaultRegion;
     }
 
     private Optional<String> getByUrl(String url, String region) {
@@ -97,7 +99,7 @@ public class RequestsService {
     }
 
     public Optional<CatalogResponsePojo> getJson(int page) {
-        return getJson(false, "2", page);
+        return getJson(false, defaultRegion, page);
     }
 
     public Optional<CatalogResponsePojo> getJson(boolean sparkling, String region, int page) {
