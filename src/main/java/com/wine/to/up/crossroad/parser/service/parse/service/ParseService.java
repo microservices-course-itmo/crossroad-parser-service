@@ -2,6 +2,7 @@ package com.wine.to.up.crossroad.parser.service.parse.service;
 
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
@@ -141,8 +142,8 @@ public class ParseService {
      *
      * @return возвращает dto Optional<Product>
      */
-    public Optional<Product> parseProductPage(@NonNull String html, String region) {
-        return Metrics.timer(WINE_DETAILS_PARSING_DURATION_SUMMARY, "city", region)
+    public Optional<Product> parseProductPage(@NonNull String html, String regionId) {
+        return Metrics.timer(WINE_DETAILS_PARSING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
                 .record(() -> {
                     Document document = Jsoup.parse(html);
 
@@ -257,8 +258,8 @@ public class ParseService {
      *
      * @return список ссылок на страницы вин
      */
-    public List<String> parseUrlsCatalogPage(String html, String region) {
-        return Metrics.timer(WINE_PAGE_PARSING_DURATION_SUMMARY, "city", region)
+    public List<String> parseUrlsCatalogPage(String html, String regionId) {
+        return Metrics.timer(WINE_PAGE_PARSING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
                 .record(() -> {
                     List<String> productsUrls = new ArrayList<>();
                     Document document = Jsoup.parse(html);

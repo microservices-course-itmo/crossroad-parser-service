@@ -117,21 +117,21 @@ public class ProductService {
         return (int) Math.ceil((double) pojo.getCount() / 30);
     }
 
-    public Optional<Product> parseWine(String wineUrl, String region) {
-        Optional<String> html = requestsService.getItemHtml(wineUrl, region);
+    public Optional<Product> parseWine(String wineUrl, String regionId) {
+        Optional<String> html = requestsService.getItemHtml(wineUrl, regionId);
         if (html.isEmpty()) {
             return Optional.empty();
         }
 
-        return parseService.parseProductPage(html.get(), region);
+        return parseService.parseProductPage(html.get(), regionId);
     }
 
-    private List<Product> getParsedWines(List<String> winesUrl, String region) {
+    private List<Product> getParsedWines(List<String> winesUrl, String regionId) {
         return winesUrl.parallelStream()
-                .map(url -> requestsService.getItemHtml(url, region))
+                .map(url -> requestsService.getItemHtml(url, regionId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map((html) -> parseService.parseProductPage(html, region))
+                .map((html) -> parseService.parseProductPage(html, regionId))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
