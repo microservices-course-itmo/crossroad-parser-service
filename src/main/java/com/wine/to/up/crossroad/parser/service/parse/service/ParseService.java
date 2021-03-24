@@ -25,8 +25,8 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
  */
 @Slf4j
 public class ParseService {
-    private static final String WINE_DETAILS_PARSING_DURATION_SUMMARY = "wine_details_parsing_duration_seconds";
-    private static final String WINE_PAGE_PARSING_DURATION_SUMMARY = "wine_page_parsing_duration_seconds";
+    private static final String WINE_DETAILS_PARSING_DURATION_SUMMARY = "wine_details_parsing_duration";
+    private static final String WINE_PAGE_PARSING_DURATION_SUMMARY = "wine_page_parsing_duration";
 
     private static final String MANUFACTURER_NAME = "Производитель";
     private static final String BRAND_NAME = "Торговая марка";

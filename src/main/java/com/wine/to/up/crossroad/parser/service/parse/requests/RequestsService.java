@@ -35,8 +35,8 @@ import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserSer
 @Setter
 @ToString
 public class RequestsService {
-    private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration_seconds";
-    private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration_seconds";
+    private static final String WINE_DETAILS_FETCHING_DURATION_SUMMARY = "wine_details_fetching_duration";
+    private static final String WINE_PAGE_FETCHING_DURATION_SUMMARY = "wine_page_fetching_duration";
     private static final String REGION_PARAMETER = "region";
 
     private final String baseUrl;
