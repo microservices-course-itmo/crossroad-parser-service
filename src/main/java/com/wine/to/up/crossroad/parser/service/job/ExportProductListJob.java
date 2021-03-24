@@ -100,11 +100,12 @@ public class ExportProductListJob {
                                 .parallelStream()
                                 .map(pair -> {
                                     final String url = pair.getFirst();
-                                    final String region = pair.getSecond();
-                                    final Optional<Product> product = productService.parseWine(url, region);
+                                    final String regionId = pair.getSecond();
+                                    final String regionName = City.resolve(Integer.parseInt(regionId)).getName();
+                                    final Optional<Product> product = productService.parseWine(url, regionId);
                                     product.ifPresent(value -> {
-                                        value.setCity(City.resolve(Integer.parseInt(region)).getName());
-                                        metricsCollector.incWinesSentToKafka(region);
+                                        value.setCity(regionName);
+                                        metricsCollector.incWinesSentToKafka(regionName);
                                     });
                                     return product;
                                 })

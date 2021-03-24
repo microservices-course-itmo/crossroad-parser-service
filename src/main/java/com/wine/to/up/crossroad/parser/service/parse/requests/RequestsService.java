@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
+import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
@@ -119,15 +120,15 @@ public class RequestsService {
         }
     }
 
-    public Optional<String> getHtml(boolean sparkling, String region, int page) {
-        Optional<CatalogResponsePojo> result = Metrics.timer(WINE_PAGE_FETCHING_DURATION_SUMMARY, "city", region)
-                .record(() -> getJson(sparkling, region, page));
+    public Optional<String> getHtml(boolean sparkling, String regionId, int page) {
+        Optional<CatalogResponsePojo> result = Metrics.timer(WINE_PAGE_FETCHING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
+                .record(() -> getJson(sparkling, regionId, page));
 
         return result.map(CatalogResponsePojo::getHtml);
     }
 
-    public Optional<String> getItemHtml(String url, String region) {
-        return Metrics.timer(WINE_DETAILS_FETCHING_DURATION_SUMMARY, "city", region)
-                .record(() -> getByUrl(baseUrl + url, region));
+    public Optional<String> getItemHtml(String url, String regionId) {
+        return Metrics.timer(WINE_DETAILS_FETCHING_DURATION_SUMMARY, "city", City.resolve(Integer.parseInt(regionId)).getName())
+                .record(() -> getByUrl(baseUrl + url, regionId));
     }
 }

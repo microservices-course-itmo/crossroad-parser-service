@@ -95,6 +95,9 @@ public class Wine {
     @Column(name = "sparkling")
     private boolean sparkling;
 
+    @Column(name = "city")
+    private String city;
+
     public static Wine fromProduct(Product product) {
         return Wine.builder()
                 .name(product.getName())
@@ -118,6 +121,7 @@ public class Wine {
                 .flavor(product.getFlavor())
                 .rating(product.getRating())
                 .sparkling(product.isSparkling())
+                .city(product.getCity())
                 .build();
     }
 
@@ -144,6 +148,7 @@ public class Wine {
                 .flavor(wine.getFlavor())
                 .rating(wine.getRating())
                 .sparkling(wine.isSparkling())
+                .city(wine.getCity())
                 .build();
     }
 }
