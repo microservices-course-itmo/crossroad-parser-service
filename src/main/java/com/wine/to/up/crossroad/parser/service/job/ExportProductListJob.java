@@ -103,7 +103,10 @@ public class ExportProductListJob {
                                 final String url = pair.getFirst();
                                 final String region = pair.getSecond();
                                 final Optional<Product> product = productService.parseWine(url, region);
-                                product.ifPresent(value -> value.setCity(City.resolve(Integer.parseInt(region)).getName()));
+                                product.ifPresent(value -> {
+                                    value.setCity(City.resolve(Integer.parseInt(region)).getName());
+                                    metricsCollector.incWinesSentToKafka(region);
+                                });
                                 return product;
                             })
                             .filter(Optional::isPresent)
@@ -117,7 +120,6 @@ public class ExportProductListJob {
                             .build();
 
                     kafkaSendMessageService.sendMessage(message);
-                    metricsCollector.incWinesSentToKafka(toIndex - fromIndex);
 
                     TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
                 }

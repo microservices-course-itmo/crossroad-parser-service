@@ -99,8 +99,9 @@ public class ProductService {
             for (int i = 1; i <= pages; i++) {
                 List<String> winesUrlFromPage = requestsService
                         .getHtml(sparkling, region, i)
-                        .map(parseService::parseUrlsCatalogPage)
+                        .map((w) -> parseService.parseUrlsCatalogPage(w, region))
                         .orElse(Collections.emptyList());
+
                 if (winesUrlFromPage.isEmpty()) {
                     eventLogger.warn(W_PARSED_BUT_NO_URLS, i);
                 }
@@ -122,7 +123,7 @@ public class ProductService {
             return Optional.empty();
         }
 
-        return parseService.parseProductPage(html.get());
+        return parseService.parseProductPage(html.get(), region);
     }
 
     private List<Product> getParsedWines(List<String> winesUrl, String region) {
@@ -130,7 +131,7 @@ public class ProductService {
                 .map(url -> requestsService.getItemHtml(url, region))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(parseService::parseProductPage)
+                .map((html) -> parseService.parseProductPage(html, region))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .collect(Collectors.toList());
