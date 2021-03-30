@@ -206,6 +206,7 @@ public class ExportProductListJob {
         if (wine.getCity() != null) {
             builder.setCity(wine.getCity());
         }
+
         return builder.build();
     }
 

@@ -41,4 +41,5 @@ public class Product {
     private Float rating;
     private boolean sparkling;
     private String city;
+    private String inStock;
 }
