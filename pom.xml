@@ -16,14 +16,15 @@
     </parent>
 
     <properties>
-        <current-version>0.9.3</current-version>
+        <current-version>0.9.4</current-version>
 
         <service.commonlib.version>0.2.3-SNAPSHOT</service.commonlib.version>
-        <parser.common.api.version>0.2.5-SNAPSHOT</parser.common.api.version>
+        <parser.common.api.version>0.2.6-SNAPSHOT</parser.common.api.version>
         <jsoup.version>1.13.1</jsoup.version>
         <opencsv.version>5.2</opencsv.version>
         <httpcomponents.version>4.5.12</httpcomponents.version>
         <postgresql.version>42.2.19</postgresql.version>
+        <flyway.version>6.5.7</flyway.version>
     </properties>
 
     <dependencies>
@@ -110,6 +111,14 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+        </dependency>
+
+        <!-- Migrations -->
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>${flyway.version}</version>
         </dependency>
     </dependencies>
 </project>

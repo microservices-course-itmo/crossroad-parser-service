@@ -176,6 +176,8 @@ public class ParseService {
                     }
                     productBuilder.newPrice(newPriceO.get());
 
+                    productBuilder.inStock("В наличии");
+
                     Optional.ofNullable(
                             document
                                     .getElementsByClass("js-product__old-cost")
