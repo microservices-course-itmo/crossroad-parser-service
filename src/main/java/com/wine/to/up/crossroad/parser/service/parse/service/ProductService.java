@@ -78,7 +78,7 @@ public class ProductService {
 
             return Optional.of(wines);
         } catch (Exception ex) {
-            eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR);
+            eventLogger.error(E_PRODUCT_LIST_PARSING_ERROR, ex);
             metricsCollector.incParsingFailed();
 
             return Optional.empty();

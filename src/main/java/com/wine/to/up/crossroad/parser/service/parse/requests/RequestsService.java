@@ -87,13 +87,13 @@ public class RequestsService {
 
             return Optional.of(result.toString());
         } catch (IOException e) {
-            eventLogger.error(E_URL_FETCHING_ERROR, url, e);
+            eventLogger.error(E_URL_FETCHING_ERROR, url, region, e);
             return Optional.empty();
         } catch (URISyntaxException e) {
-            eventLogger.error(E_INVALID_URL, url);
+            eventLogger.error(E_INVALID_URL, url, region, e);
             return Optional.empty();
         } catch (Exception e) {
-            eventLogger.error(E_UNEXPECTED_ERROR, e);
+            eventLogger.error(E_UNEXPECTED_ERROR, url, region, e);
             return Optional.empty();
         }
     }
@@ -113,7 +113,7 @@ public class RequestsService {
                 CatalogResponsePojo result = new ObjectMapper().readValue(json.get(), CatalogResponsePojo.class);
                 return Optional.of(result);
             } catch (JsonProcessingException e) {
-                eventLogger.error(E_JSON_PROCESSING_ERROR, e);
+                eventLogger.error(E_JSON_PROCESSING_ERROR, url, e);
                 return Optional.empty();
             }
         }

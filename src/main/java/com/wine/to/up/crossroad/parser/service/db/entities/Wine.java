@@ -98,6 +98,9 @@ public class Wine {
     @Column(name = "city")
     private String city;
 
+    @Column(name = "inStock")
+    private String inStock;
+
     public static Wine fromProduct(Product product) {
         return Wine.builder()
                 .name(product.getName())
@@ -122,6 +125,7 @@ public class Wine {
                 .rating(product.getRating())
                 .sparkling(product.isSparkling())
                 .city(product.getCity())
+                .inStock(product.getInStock())
                 .build();
     }
 
@@ -149,6 +153,7 @@ public class Wine {
                 .rating(wine.getRating())
                 .sparkling(wine.isSparkling())
                 .city(wine.getCity())
+                .inStock(wine.getInStock())
                 .build();
     }
 }

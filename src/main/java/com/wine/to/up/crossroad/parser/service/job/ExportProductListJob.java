@@ -82,6 +82,7 @@ public class ExportProductListJob {
             eventLogger.info(I_START_JOB, startTime);
             for (final String region : regions) {
                 try {
+                    metricsCollector.incParsingStarted();
                     List<Product> wines = new ArrayList<>();
                     List<Pair<String, String>> winesUrlWithRegions = new ArrayList<>();
                     List<String> winesUrl = productService.getWinesUrl(false, region);
@@ -128,6 +129,9 @@ public class ExportProductListJob {
                     System.gc();
                 } catch (Exception exception) {
                     eventLogger.error(E_PRODUCT_LIST_EXPORT_ERROR, exception);
+                    metricsCollector.incParsingFailed();
+                } finally {
+                    metricsCollector.incParsingComplete();
                 }
             }
             eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
@@ -206,6 +210,7 @@ public class ExportProductListJob {
         if (wine.getCity() != null) {
             builder.setCity(wine.getCity());
         }
+
         return builder.build();
     }
 
