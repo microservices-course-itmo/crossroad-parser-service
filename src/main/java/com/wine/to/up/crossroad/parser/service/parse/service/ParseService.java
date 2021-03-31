@@ -176,7 +176,7 @@ public class ParseService {
                     }
                     productBuilder.newPrice(newPriceO.get());
 
-                    productBuilder.inStock("0");
+                    productBuilder.inStock("В наличии");
 
                     Optional.ofNullable(
                             document
