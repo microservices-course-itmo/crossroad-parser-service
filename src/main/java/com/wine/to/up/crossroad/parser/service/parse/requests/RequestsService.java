@@ -6,6 +6,8 @@ import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.db.constants.City;
 import com.wine.to.up.crossroad.parser.service.parse.serialization.CatalogResponsePojo;
+import com.wine.to.up.crossroad.parser.service.proxy.Proxy;
+import com.wine.to.up.crossroad.parser.service.proxy.ProxyFeignClient;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tag;
@@ -14,6 +16,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHeaders;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.CookieSpecs;
@@ -26,7 +29,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
 
@@ -43,15 +49,34 @@ public class RequestsService {
     private final String userAgent;
     private final int timeout;
     private final String defaultRegion;
+    private final ProxyFeignClient proxyService;
+
+    private List<Proxy> proxyList;
 
     @InjectEventLogger
     private EventLogger eventLogger;
 
-    public RequestsService(String baseUrl, String userAgent, int timeout, String defaultRegion) {
+    public RequestsService(ProxyFeignClient proxyService, String baseUrl, String userAgent, int timeout, String defaultRegion) {
         this.baseUrl = baseUrl;
         this.userAgent = userAgent;
         this.timeout = timeout;
         this.defaultRegion = defaultRegion;
+        this.proxyService = Objects.requireNonNull(proxyService, "Can't get proxyService");
+
+        this.updateProxyList();
+    }
+
+    public void updateProxyList() {
+        this.proxyList = proxyService.getProxies("CROSSROAD-PARSER-SERVICE");
+    }
+
+    private Proxy getProxy() {
+        if (!this.proxyList.isEmpty()) {
+            Random rand = new Random();
+            return this.proxyList.get(rand.nextInt(this.proxyList.size()));
+        } else {
+            return null;
+        }
     }
 
     private Optional<String> getByUrl(String url, String region) {
@@ -62,8 +87,12 @@ public class RequestsService {
                     .setConnectionRequestTimeout(timeout)
                     .setCookieSpec(CookieSpecs.IGNORE_COOKIES)
                     .build();
+
+            Proxy proxy = this.getProxy();
+
             HttpClient client = HttpClientBuilder.create()
                     .setDefaultRequestConfig(config)
+                    .setProxy(new HttpHost(proxy.getIp(), proxy.getPort()))
                     .setRetryHandler(new DefaultHttpRequestRetryHandler(4, false))
                     .build();
 

@@ -80,6 +80,9 @@ public class ExportProductListJob {
 
         while (true) {
             eventLogger.info(I_START_JOB, startTime);
+
+            productService.updateProxyList();
+
             for (final String region : regions) {
                 try {
                     metricsCollector.incParsingStarted();
