@@ -8,6 +8,8 @@ import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.crossroad.parser.service.components.CrossroadParserServiceMetricsCollector;
 import com.wine.to.up.crossroad.parser.service.db.dto.Product;
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
+import com.wine.to.up.crossroad.parser.service.proxy.ProxyFeignClient;
+import feign.Feign;
 import io.micrometer.core.annotation.Timed;
 import io.micrometer.core.instrument.Metrics;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +62,10 @@ public class ProductService {
                 lastSucceededParsingTime,
                 val -> val.get() == 0 ? Double.NaN : (System.currentTimeMillis() - val.get()) / 1000.0
         );
+    }
+
+    public void updateProxyList() {
+        this.requestsService.updateProxyList();
     }
 
     @Timed(PARSING_PROCESS_DURATION_SUMMARY)
