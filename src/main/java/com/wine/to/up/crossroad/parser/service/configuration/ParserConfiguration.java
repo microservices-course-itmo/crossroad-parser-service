@@ -4,6 +4,7 @@ import com.wine.to.up.crossroad.parser.service.components.CrossroadParserService
 import com.wine.to.up.crossroad.parser.service.parse.requests.RequestsService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ParseService;
 import com.wine.to.up.crossroad.parser.service.parse.service.ProductService;
+import com.wine.to.up.crossroad.parser.service.proxy.ProxyFeignClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,8 +30,8 @@ public class ParserConfiguration {
     private String defaultRegion;
 
     @Bean
-    RequestsService requestsService() {
-        return new RequestsService(baseUrl, userAgent, timeout, defaultRegion);
+    RequestsService requestsService(ProxyFeignClient proxyService) {
+        return new RequestsService(proxyService, baseUrl, userAgent, timeout, defaultRegion);
     }
 
     @Bean

@@ -1,5 +1,6 @@
 package com.wine.to.up.crossroad.parser.service.job;
 
+import com.google.common.collect.Lists;
 import com.wine.to.up.commonlib.annotations.InjectEventLogger;
 import com.wine.to.up.commonlib.logging.EventLogger;
 import com.wine.to.up.commonlib.messaging.KafkaMessageSender;
@@ -21,6 +22,7 @@ import org.springframework.context.event.EventListener;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.wine.to.up.crossroad.parser.service.logging.CrossroadParserServiceNotableEvents.*;
 
@@ -80,6 +82,9 @@ public class ExportProductListJob {
 
         while (true) {
             eventLogger.info(I_START_JOB, startTime);
+
+            productService.updateProxyList();
+
             for (final String region : regions) {
                 try {
                     metricsCollector.incParsingStarted();
@@ -124,6 +129,8 @@ public class ExportProductListJob {
 
                         TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
                     }
+
+                    sendOutOfStock(wines);
                     saveDb(wines);
                     wines = null;
                     System.gc();
@@ -135,6 +142,24 @@ public class ExportProductListJob {
                 }
             }
             eventLogger.info(I_END_JOB, new Date().getTime(), (new Date().getTime() - startTime));
+        }
+    }
+
+    public void sendOutOfStock(List<Product> wines) throws InterruptedException {
+        Set<Product> productsInDb = new HashSet<>(wineService.findAllProducts());
+        productsInDb.removeAll(wines);
+        if (productsInDb.size() > 0) {
+            for (List<Product> products : Lists.partition(List.copyOf(productsInDb), BATCH_SIZE)) {
+                products.forEach(x -> x.setInStock("Нет в наличии"));
+                ParserApi.WineParsedEvent message = ParserApi.WineParsedEvent.newBuilder()
+                        .setShopLink(SHOP_LINK)
+                        .addAllWines(products.stream().map(this::getProtobufProduct).collect(Collectors.toList()))
+                        .build();
+
+                kafkaSendMessageService.sendMessage(message);
+
+                TimeUnit.SECONDS.sleep(SLEEP_TIME_BETWEEN_BATCH_SECONDS);
+            }
         }
     }
 
