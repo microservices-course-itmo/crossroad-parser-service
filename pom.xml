@@ -16,7 +16,7 @@
     </parent>
 
     <properties>
-        <current-version>0.9.4</current-version>
+        <current-version>0.9.5</current-version>
 
         <service.commonlib.version>0.2.3-SNAPSHOT</service.commonlib.version>
         <parser.common.api.version>0.2.6-SNAPSHOT</parser.common.api.version>
