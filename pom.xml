@@ -24,7 +24,6 @@
         <opencsv.version>5.2</opencsv.version>
         <httpcomponents.version>4.5.12</httpcomponents.version>
         <postgresql.version>42.2.19</postgresql.version>
-        <flyway.version>6.5.7</flyway.version>
     </properties>
 
     <dependencies>
@@ -115,14 +114,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-        </dependency>
-
-        <!-- Migrations -->
-        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
     </dependencies>
 </project>
