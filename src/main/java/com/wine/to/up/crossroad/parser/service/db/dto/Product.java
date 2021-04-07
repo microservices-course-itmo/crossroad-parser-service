@@ -1,9 +1,6 @@
 package com.wine.to.up.crossroad.parser.service.db.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.util.List;
 
@@ -18,6 +15,7 @@ import java.util.List;
 @Setter
 @Builder
 @ToString
+@EqualsAndHashCode
 public class Product {
     private String name;
     private Float oldPrice;
